@@ -68,26 +68,19 @@ yarn dev
 └── styles/              # Additional style files
 ```
 
-## Deployment on Vercel
+## Deployment
 
-The easiest way to deploy the application is using [Vercel](https://vercel.com), the platform from the creators of Next.js.
+To deploy on Vercel:
 
-1. Create an account on [Vercel](https://vercel.com/signup)
-2. Install the Vercel CLI:
-
-```bash
-npm i -g vercel
-```
-
-3. Run the following command from the project directory:
-
-```bash
-vercel
-```
-
-4. Follow the prompts to link your project to Vercel.
-
-Alternatively, you can connect your GitHub repository to Vercel for automatic deployments on each push.
+1. Push the project to a GitHub repository.
+2. Go to https://vercel.com, sign in, and click "New Project".
+3. Import the `grade-skipper` repository.
+4. Configure the project with:
+   - Framework Preset: Next.js
+   - Root Directory: ./
+   - Build Command: `npm run build`
+   - Output Directory: .next
+5. Click "Deploy".
 
 ## Future Enhancements
 
