@@ -22,11 +22,12 @@ export interface QuizResult {
 
 // Book interface for reading logs
 export interface Book {
-  id: string;
   title: string;
   author: string;
-  subject: string;
-  coverUrl?: string;
+  pagesRead: number;
+  totalPages: number;
+  thoughts: string;
+  rating: number;
 }
 
 // Reading log entry
@@ -40,15 +41,8 @@ export interface ReadingLog {
 
 // User progress interface
 export interface Progress {
-  completedQuizzes: string[];
-  subjectProgress: Record<
-    string,
-    {
-      completedTopics: string[];
-      overallScore: number;
-      lastAccessed: string;
-    }
-  >;
+  completedQuizzes?: { topic: string; score: number }[];
+  subjectProgress: Record<string, any>;
   points: number;
   level: number;
 }
