@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Metadata } from "next";
 
 // Sample subjects data
 const subjectsData = {
@@ -94,56 +95,40 @@ interface SubjectPageProps {
   };
 }
 
-export default function SubjectPage({ params }: SubjectPageProps) {
-  const { subject } = params;
-  const subjectData = subjectsData[subject as keyof typeof subjectsData] || {
-    name: "Unknown Subject",
-    topics: [],
+export async function generateMetadata({
+  params,
+}: SubjectPageProps): Promise<Metadata> {
+  // Format the subject name to have proper capitalization
+  const formattedSubject = params.subject
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  return {
+    title: `${formattedSubject} - Grade Skipper`,
+    description: `Learn ${formattedSubject} with interactive lessons and quizzes.`,
   };
+}
+
+export default function SubjectPage({ params }: SubjectPageProps) {
+  // Format the subject name to have proper capitalization
+  const formattedSubject = params.subject
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
   return (
-    <div className="space-y-8">
-      <section className="text-center py-12">
-        <h1 className="text-5xl font-bold neon-text mb-4">
-          {subjectData.name}
-        </h1>
-        <p className="text-xl max-w-3xl mx-auto">
-          Select a topic to explore lessons and take quizzes.
-        </p>
-      </section>
+    <div className="space-y-6">
+      <h1 className="text-4xl font-bold text-cyan-400">{formattedSubject}</h1>
+      <p className="text-lg">
+        Explore interactive lessons and quizzes for {formattedSubject}. This
+        page is under construction.
+      </p>
 
-      <section>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-semibold">Topics</h2>
-          <Link
-            href={`/subject/${subject}/quiz/challenge`}
-            className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded transition-colors"
-          >
-            Challenge Quiz
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {subjectData.topics.map((topic) => (
-            <Link
-              key={topic.id}
-              href={`/subject/${subject}/quiz/${topic.id}`}
-              className="no-underline"
-            >
-              <div className="card hover:scale-105 transition-transform">
-                <h3 className="text-xl font-semibold mb-2">{topic.name}</h3>
-                <p className="text-gray-400 mb-4">{topic.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-cyan-400">Start learning</span>
-                  <span className="inline-block px-3 py-1 text-sm bg-gray-700 rounded-full">
-                    Quiz &rarr;
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <div className="bg-gray-800 rounded-lg p-6 mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Available Topics</h2>
+        <p className="text-gray-400">Topics coming soon...</p>
+      </div>
     </div>
   );
 }

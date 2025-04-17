@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 
 // Mock questions for topics
 const questionsData = {
@@ -40,75 +41,58 @@ const questionsData = {
   // Add more topics as needed
 };
 
-interface QuizPageProps {
+interface TopicQuizPageProps {
   params: {
     subject: string;
     topic: string;
   };
 }
 
-export default function QuizPage({ params }: QuizPageProps) {
-  const { subject, topic } = params;
+export async function generateMetadata({
+  params,
+}: TopicQuizPageProps): Promise<Metadata> {
+  // Format the subject and topic names to have proper capitalization
+  const formattedSubject = params.subject
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
-  // Get questions for the topic or show 404 if topic not found
-  const questions = questionsData[topic as keyof typeof questionsData];
-  if (!questions) {
-    notFound();
-  }
+  const formattedTopic = params.topic
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  return {
+    title: `${formattedTopic} Quiz - ${formattedSubject} - Grade Skipper`,
+    description: `Take a quiz on ${formattedTopic} in ${formattedSubject}.`,
+  };
+}
+
+export default function TopicQuizPage({ params }: TopicQuizPageProps) {
+  // Format the subject and topic names to have proper capitalization
+  const formattedSubject = params.subject
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  const formattedTopic = params.topic
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
   return (
-    <div className="space-y-8">
-      <section className="text-center py-8">
-        <h1 className="text-4xl font-bold neon-text mb-2">
-          {topic.charAt(0).toUpperCase() + topic.slice(1)} Quiz
-        </h1>
-        <p className="text-xl max-w-3xl mx-auto">
-          Test your knowledge on this topic.
-        </p>
-      </section>
+    <div className="space-y-6">
+      <h1 className="text-4xl font-bold text-cyan-400">
+        {formattedTopic} Quiz
+      </h1>
+      <p className="text-lg">
+        Test your knowledge on {formattedTopic} in {formattedSubject}. This quiz
+        is under construction.
+      </p>
 
-      <div className="max-w-4xl mx-auto">
-        {questions.map((question, index) => (
-          <div key={question.id} className="card mb-6 neon-border">
-            <h3 className="text-xl font-semibold mb-4">
-              Question {index + 1}: {question.question}
-            </h3>
-
-            <div className="space-y-3">
-              {question.options.map((option, optionIndex) => (
-                <div key={optionIndex} className="flex items-center">
-                  <input
-                    type="radio"
-                    id={`q${question.id}_a${optionIndex}`}
-                    name={`question_${question.id}`}
-                    className="hidden peer"
-                  />
-                  <label
-                    htmlFor={`q${question.id}_a${optionIndex}`}
-                    className="flex items-center p-3 w-full bg-gray-700 rounded-md peer-checked:bg-cyan-900 peer-checked:border-cyan-500 border border-gray-600 cursor-pointer hover:bg-gray-600 transition-colors"
-                  >
-                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 mr-3">
-                      {String.fromCharCode(65 + optionIndex)}
-                    </span>
-                    {option}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        <div className="flex justify-between mt-8">
-          <Link
-            href={`/subject/${subject}`}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
-          >
-            Back to Topics
-          </Link>
-          <button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-8 rounded transition-colors">
-            Submit Answers
-          </button>
-        </div>
+      <div className="bg-gray-800 rounded-lg p-6 mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Quiz Questions</h2>
+        <p className="text-gray-400">Questions coming soon...</p>
       </div>
     </div>
   );
