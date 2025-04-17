@@ -25,16 +25,35 @@ grade-skipper/
 │   └── layout/
 │       └── Navbar.tsx
 ├── lib/
+│   ├── questions/
+│   │   ├── coding-ai.ts
+│   │   ├── english.ts
+│   │   ├── history.ts
+│   │   ├── logic-puzzles.ts
+│   │   ├── mathematics.ts
+│   │   ├── reading.ts
+│   │   └── science.ts
 │   ├── storage.ts
 │   ├── types.ts
 │   └── utils.ts
 ├── public/
 │   ├── icons/
+│   │   ├── coding-ai.svg
+│   │   ├── english.svg
+│   │   ├── history.svg
+│   │   ├── logic-puzzles.svg
+│   │   ├── math.svg
+│   │   ├── reading.svg
+│   │   └── science.svg
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
+├── scripts/
+│   ├── dist/
+│   │   └── generateQuestions.js
+│   └── generateQuestions.ts
 └── styles/
     └── tailwind.css
 ```
