@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 // Sample subjects data
 const subjects = [
@@ -32,6 +33,7 @@ export default function Home() {
         <h1 className="text-5xl font-bold neon-text mb-4">
           Welcome to Grade Skipper
         </h1>
+        <Button variant="outline">Test Button</Button>
         <p className="text-xl max-w-3xl mx-auto">
           Accelerate your learning journey with our interactive lessons and
           quizzes. Master concepts faster and skip ahead to advanced material.
