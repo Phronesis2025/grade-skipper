@@ -4,11 +4,21 @@ A modern educational platform built with Next.js 14, TypeScript, and Tailwind CS
 
 ## Features
 
-- **Subject-based Learning**: Explore various subjects and topics
+- **Subject-based Learning**: Explore various subjects including Mathematics, Science, Reading, and more
+- **Grade-Level Selection**: Choose appropriate grade levels for each subject
 - **Interactive Quizzes**: Test your knowledge with topic-specific quizzes
-- **Challenge Quizzes**: Advanced tests for each subject
-- **Progress Tracking**: Monitor your learning achievements
-- **Reading Log**: Track your educational reading
+- **Progress Tracking**: Monitor your learning achievements with quiz results
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Consistent UI**: Clean, modern interface with intuitive navigation
+
+## Completed User Journey
+
+The application now features a complete core user journey:
+
+1. **Subject Selection** (Homepage): Browse and select from various subjects
+2. **Grade-Level Selection**: Choose an appropriate grade level for the selected subject
+3. **Quiz Experience**: Answer questions with a clean, distraction-free interface
+4. **Results Page**: View your quiz performance with score and percentage
 
 ## Tech Stack
 
@@ -17,7 +27,7 @@ A modern educational platform built with Next.js 14, TypeScript, and Tailwind CS
 - Tailwind CSS
 - Local Storage for data persistence (ready to connect to backend)
 - Google Fonts (Inter)
-- Ready for ShadCN UI integration
+- Lucide Icons for visual elements
 
 ## Getting Started
 
@@ -56,21 +66,70 @@ yarn dev
 ## Project Structure
 
 ```
-├── app/                 # Next.js App Router pages
-│   ├── (pages)/         # All page routes
+grade-skipper/
+├── app/
+│   ├── analytics/       # Future analytics dashboard
+│   ├── reading-log/     # Reading log feature
+│   ├── subject/         # Subject-related pages
+│   │   └── [id]/        # Dynamic routes for each subject
+│   │       ├── page.tsx               # Grade selection page
+│   │       ├── results/               # Quiz results page
+│   │       │   └── page.tsx
+│   │       └── quiz/                  # Quiz pages
+│   │           ├── [grade]/           # Grade-specific quizzes
+│   │           │   └── page.tsx
+│   │           └── challenge/         # Challenge quizzes (future)
+│   │               └── page.tsx
 │   ├── globals.css      # Global styles
-│   └── layout.tsx       # Root layout component
+│   ├── layout.tsx       # Root layout with Navbar
+│   └── page.tsx         # Homepage
 ├── components/          # Reusable components
-│   └── layout/          # Layout components
-├── lib/                 # Utility functions and hooks
+│   ├── layout/          # Layout components
+│   │   └── Navbar.tsx   # Navigation component
+│   └── CustomLink.tsx   # Custom navigation component
+├── lib/                 # Utility functions and data
+│   ├── questions/       # Subject-specific question data
+│   ├── storage.ts       # Local storage utilities
+│   └── types.ts         # TypeScript type definitions
 ├── public/              # Static assets
 │   └── icons/           # Subject icons
 └── styles/              # Additional style files
 ```
 
+## Current Implementation
+
+- **Homepage**: Displays learning statistics, subject cards, and recommended next steps
+- **Subject Pages**: Shows grade selection options with appropriate UI
+- **Quiz Pages**: Presents questions with multiple-choice answers
+- **Results Pages**: Displays quiz scores with options to retry or return home
+- **Navigation**: Smooth scrolling between pages with consistent UI elements
+
+## Next Steps (Roadmap)
+
+1. **Phase 4: Dynamic Data Integration**
+
+   - Replace static quiz data with dynamic content
+   - Implement quiz scoring and results storage
+   - Update progress tracking on the homepage
+
+2. **Enhanced Quiz Functionality**
+
+   - Multiple question types
+   - Difficulty progression
+   - Timed quizzes
+
+3. **User Authentication**
+
+   - User profiles and login
+   - Progress syncing across devices
+
+4. **Analytics Dashboard**
+   - Visualizations of learning progress
+   - Performance metrics and insights
+
 ## Deployment
 
-To deploy on Vercel:
+The application is ready for deployment on Vercel:
 
 1. Push the project to a GitHub repository.
 2. Go to https://vercel.com, sign in, and click "New Project".
@@ -81,15 +140,6 @@ To deploy on Vercel:
    - Build Command: `npm run build`
    - Output Directory: .next
 5. Click "Deploy".
-
-## Future Enhancements
-
-- User authentication system
-- Backend API integration
-- AI-powered quiz generation
-- Personalized learning paths
-- Gamification elements
-- Mobile app version
 
 ## License
 

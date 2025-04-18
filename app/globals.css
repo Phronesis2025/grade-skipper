@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset focus and active styles for buttons and links */
+button,
+a {
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {

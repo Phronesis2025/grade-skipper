@@ -12,8 +12,10 @@ grade-skipper/
 │   ├── subject/
 │   │   └── [id]/
 │   │       ├── page.tsx
+│   │       ├── results/
+│   │       │   └── page.tsx
 │   │       └── quiz/
-│   │           ├── [topic]/
+│   │           ├── [grade]/
 │   │           │   └── page.tsx
 │   │           └── challenge/
 │   │               └── page.tsx
@@ -22,8 +24,9 @@ grade-skipper/
 │   ├── layout.tsx
 │   └── page.tsx
 ├── components/
-│   └── layout/
-│       └── Navbar.tsx
+│   ├── layout/
+│   │   └── Navbar.tsx
+│   └── CustomLink.tsx
 ├── lib/
 │   ├── questions/
 │   │   ├── coding-ai.ts
@@ -66,3 +69,29 @@ grade-skipper/
 - package.json
 - tailwind.config.ts
 - tsconfig.json
+- .env.local
+
+## Key Project Updates (April 2025)
+
+1. Added new routes:
+
+   - `/subject/[id]/page.tsx` - Grade selection page
+   - `/subject/[id]/quiz/[grade]/page.tsx` - Quiz page
+   - `/subject/[id]/results/page.tsx` - Results page
+
+2. Added new components:
+
+   - `CustomLink.tsx` - Custom link component with scroll-to-top functionality
+
+3. Completed core user journey:
+
+   - Subject selection (homepage)
+   - Grade level selection
+   - Quiz taking
+   - Results viewing
+
+4. All pages now have consistent styling:
+   - White card UI with subtle shadows
+   - Responsive design with no scrollbars on desktop
+   - Consistent button styling with #4361ee color
+   - Proper navigation between pages
