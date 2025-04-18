@@ -4,9 +4,9 @@ import Image from "next/image";
 
 export default function Navbar() {
   return (
-    <div
-      className="px-[25px] py-[10px] flex justify-between items-center w-full shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
-      style={{ backgroundColor: "white", width: "100%" }}
+    <nav
+      className="px-[25px] py-[10px] flex justify-between items-center w-full bg-white"
+      style={{ width: "100%" }}
     >
       <div className="flex items-center font-bold text-[18px] text-[#4361ee]">
         <span className="mr-[10px]">🎓</span>
@@ -22,6 +22,6 @@ export default function Navbar() {
           className="rounded-full"
         />
       </div>
-    </div>
+    </nav>
   );
 }

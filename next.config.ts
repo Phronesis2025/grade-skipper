@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
+const nextConfig = {
+  serverExternalPackages: ["some-package"], // Moved from experimental.serverComponentsExternalPackages
 };
 
 export default nextConfig;

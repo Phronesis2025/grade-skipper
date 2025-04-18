@@ -1,0 +1,200 @@
+1. OpenAI Integration
+API Details: 
+-I have an OpenAi key to use for this project.  It uses gpt3.5.
+-Please make suggestions if you feel something else would be more efficient or affordable
+Prompt Structure:
+-'Generate 3 multiple choice or true/false questions for 6th grade Mathematics, each with the following:
+-4 answer options (or 2 for T/F)
+-a correct answer
+-a topic tag of the topic the question is based on (e.g., Fractions, American History, Physics)
+-a hint to give clues as to the correct answer
+-a short explanation of how the correct answer can be calculated or learned, both for correct and incorrect answers.'
+
+-Example 1:
+•Topic: American Revolution
+•Type: True/False
+•Q: True or False: The American colonies declared independence from Britain in 1776.
+•A. True ✅
+•B. False
+•Hint: Look up the year the Declaration of Independence was signed.
+•Explanation:
+•Correct Answer (A): The Declaration of Independence was adopted on July 4, 1776, officially stating that the colonies wanted to break away from British rule.
+•Incorrect Answer (B): This is false—1776 is the correct year. The Declaration is a key document in U.S. history.
+
+-Example 2:
+•Topic: Area and Perimeter
+•Type: Multiple Choice
+•Q: A rectangle is 8 units long and 3 units wide. What is its perimeter?
+•A. 11 units
+•B. 24 units 
+•C. 22 units ✅
+•D. 21 units
+•Hint: Use the formula for perimeter of a rectangle: 
+•P=2×(length+width).
+•Explanation:
+•Correct Answer (C): 
+•P=2×(8+3)=2×11=22
+•Incorrect Answers:
+•(A) 11 units: This might be the result of adding only one side of length and width.
+•(B) 24 units: Might result from confusion with area (8 × 3).
+•(D) 21 units: A miscalculation when adding sides or multiplying.
+
+-Output should be JSON for easier handling (open to suggestions here)
+
+Error Handling: 
+-Show 'No quiz available', show retry button and return to homepage button
+
+Response Time: 
+-Present the spinner until the call is finished.
+-If longer than 30 seconds, end call and show 'No quiz available' screen
+
+Content Validation: 
+-Ensure through the prompt that data return is exactly as requested
+
+2. Grade-Level Selection Page
+Intermediary Page: 
+-Grade level selection page should handle selection internally, separate screen from quiz page.
+
+Design: 
+-Grade level selection page should match the look and format of the quiz page
+-radio buttons to select desired grade level
+-will add more information to this page in future
+
+Locked Grades: 
+-6th grade is unlocked for all subjects
+-once all five 6th grade subject specific quizzes have been mastered(90%+), then 7th grade option will unlock
+-Once 7th grade has been mastered, 8th grade will unlock and so on
+-disable radio buttons until grade level unlocked
+-tooltip "Master 6th grade before unlocking" or something similar
+
+Navigation: 
+-return to homepage
+
+3. Storage and Data Persistence
+Storage Options: 
+-I think setting up Supabase storage would be the right solution for this app
+-Give your thoughts on this topic, based on the information that is being requested to be stored
+-Options must be free and work seamlessly with app
+
+Correct Answer Validation: 
+-After the OpenAI call to generate the questions and answers, where is the best place to temporarily store this data to use during the quiz until after quiz completion?
+-Will need your expect guidance here
+
+Progress Structure: 
+-This can be determined once we decide on storage options
+
+Achievements Storage: 
+-This can be determined once we decide on storage options
+
+4. Calculator Tool
+Implementation: 
+-Search for any simple pre-built React components available for free to use
+
+Availability: 
+-hide for non-relevant subject
+-Show for relevant topics only (Math, Science, etc)
+
+Usage Tracking: 
+-No tracking needed; simple tool to assist
+
+5. Results Page
+Navigation: 
+-Separate page for 'Results' page
+
+Question Review:
+-accordion style list with question, user answer, correct answer
+-only show explanations for incorrect answers
+
+Options:
+Return to Home: 
+-verify with user if they want to quit the quiz first
+
+Take Another Quiz: 
+-return to homepage
+
+Retake Quiz: 
+-use same question set
+
+Design: 
+-same style and design as Quiz page
+
+6. Achievements System
+Correct Answers in a Row: 
+-5 correct in a row
+-10 correct in a row
+-reset after every incorrect answer
+
+Mastery Achievement: 
+-one achievement per subject/grade
+-grade level achievement after all subjects for that grade level have been mastered
+
+Streak Achievement: 
+-each time a streak is broken
+
+Display: 
+-pop up should show when each achievement is earned
+-will add confetti animation to this later
+
+Additional Ideas: 
+-Yes, provide list of 10 more achievement ideas
+
+7. UI and Feedback Details
+Feedback Placement: 
+-should be shown after each question is answered; style to match rest of page
+
+Back to Home Button: 
+-Place in upper left underneath the Navbar profile avatar
+
+Topic Sub-Header: 
+-style like homepage subtitles
+-update per question
+
+Loading Spinner: 
+-inside question card area
+-match page style
+
+Error Message: 
+-
+
+8. Accessibility and Mobile
+Accessibility 
+ARIA labels -No
+Keyboard navigation -Yes
+Screen reader support -No
+High-contrast mode -No
+
+Mobile Best Practices: Should I ensure:
+Larger touch targets -Yes
+Full-width buttons -Yes
+Avoid horizontal scrolling -Yes
+Any specific mobile behaviors -No
+
+9. Technical Constraints
+OpenAI Rate Limits: 
+-Yes
+
+Storage Limits: 
+-Discuss storage options first
+
+Performance: 
+-Yes, efficient and cheaper options preferred
+
+Routing: 
+-Use best judgement to align with project goals
+
+10. Integration with Homepage
+Stat Box Order: 
+-update app/page.tsx to reflect order
+-keep same colors for now
+
+Progress Update: 
+-Discuss storage options first
+-Need further clarification here
+
+Subject Data: 
+-Yes
+
+
+Review these answers.  Then create a comprehensive document explaining all of the details and technical aspects we will use during the project.  Any undecided aspects should be labeled as 'TBD'.  A full PRD document to refer back to when questions arise.
+
+Then we can tackle each section at a time, starting with the grade level selection page and the results page with sample data as a placeholder.
