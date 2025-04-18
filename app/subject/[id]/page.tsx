@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomLink from "@/components/CustomLink";
 
 // Import the subjects array from the homepage
@@ -83,6 +83,27 @@ export default function SubjectPage() {
     setSelectedGrade(e.target.value);
   };
 
+  // UseEffect to disable scrollbar on mount and re-enable on unmount
+  useEffect(() => {
+    // Only apply on desktop
+    const isDesktop = window.innerWidth >= 640;
+
+    if (isDesktop) {
+      // Store original body style
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+
+      // Disable scrollbar on mount
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("no-scroll-desktop");
+
+      // Re-enable scrollbar on unmount
+      return () => {
+        document.body.style.overflow = originalStyle;
+        document.body.classList.remove("no-scroll-desktop");
+      };
+    }
+  }, []);
+
   return (
     <>
       {/* "Back to Home" button */}
@@ -97,7 +118,7 @@ export default function SubjectPage() {
 
       {/* Main container */}
       <div
-        className="bg-[#F9FAFB] min-h-[calc(100vh-45px)] overflow-auto scrollbar-width-none"
+        className="bg-[#F9FAFB] no-scrollbar-page scrollbar-width-none"
         style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
       >
         <div className="max-w-[800px] mx-auto p-[10px] mt-[5px] max-sm:p-[15px] max-sm:mt-[50px]">

@@ -10,7 +10,7 @@ grade-skipper/
 │   ├── reading-log/
 │   │   └── page.tsx
 │   ├── subject/
-│   │   └── [subject]/
+│   │   └── [id]/
 │   │       ├── page.tsx
 │   │       └── quiz/
 │   │           ├── [topic]/
