@@ -45,9 +45,11 @@ grade-skipper/
 │   │   ├── math.svg
 │   │   ├── reading.svg
 │   │   └── science.svg
+│   ├── amelia.png
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
+│   ├── placeholder.png
 │   ├── vercel.svg
 │   └── window.svg
 ├── scripts/
