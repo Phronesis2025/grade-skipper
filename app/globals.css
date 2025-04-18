@@ -4,14 +4,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset focus and active styles for buttons and links */
-button,
-a {
-  &:focus,
-  &:focus-visible,
-  &:active {
+@layer base {
+  button,
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  a {
     outline: none !important;
     box-shadow: none !important;
+    border: none !important;
+  }
+  *:focus,
+  *:focus-visible,
+  *:active {
+    outline: none !important;
+    box-shadow: none !important;
+    ring: 0 !important;
   }
 }
 
@@ -66,7 +74,7 @@ body {
 
 body {
   color: var(--text-primary);
-  background: #f9fafb;
+  background: #f0f1f2;
   font-feature-settings: "rlig" 1, "calt" 1;
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;

@@ -1,11 +1,10 @@
 "use client";
 
-import CustomLink from "@/components/CustomLink";
 import { Check, X } from "lucide-react";
 
 interface QuizCardProps {
   question: string;
-  options: string[];
+  options: string[] | undefined;
   selectedAnswer: string | null;
   onAnswerSelect: (answer: string) => void;
   subjectId: string;
@@ -30,6 +29,17 @@ export default function QuizCard({
   onSubmit,
   feedback,
 }: QuizCardProps) {
+  if (!options || options.length === 0) {
+    return (
+      <div className="bg-white rounded-lg p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] mb-[20px]">
+        <h2 className="text-[18px] font-semibold mb-[15px]">{question}</h2>
+        <p className="text-[14px] text-red-600">
+          Error: No options available for this question.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] mb-[20px]">
       <style jsx>{`
@@ -48,7 +58,7 @@ export default function QuizCard({
         {options.map((option, index) => (
           <label
             key={index}
-            className={`p-[12px] rounded-[6px] text-[16px] flex items-center cursor-pointer transition-colors ${
+            className={`p-[12px] rounded-[6px] text-[16px] flex items-center cursor-pointer transition-colors bg-clip-padding ${
               selectedAnswer === option
                 ? "bg-[#E0E7FF]"
                 : feedback && option === feedback.correctAnswer
@@ -60,12 +70,12 @@ export default function QuizCard({
               type="radio"
               name="answer"
               value={option}
-              className="mr-[12px]"
+              className="mr-[16px] w-[16px] h-[16px] border-2 border-[#4361ee] rounded-full focus:outline-none focus:ring-0"
               checked={selectedAnswer === option}
               onChange={() => onAnswerSelect(option)}
               disabled={disabled}
             />
-            <span className="flex items-center gap-[12px] relative z-10">
+            <span className="flex items-center gap-[16px] relative z-10">
               {option}
               {feedback && option === feedback.correctAnswer && (
                 <Check
@@ -96,7 +106,7 @@ export default function QuizCard({
         <div className="flex justify-center max-sm:flex-col max-sm:gap-[10px] max-sm:items-stretch">
           <button
             onClick={onSubmit}
-            className={`px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold max-sm:text-center max-sm:w-full focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 ${
+            className={`px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold max-sm:text-center max-sm:w-full focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0 ${
               isSubmitDisabled
                 ? "bg-[#4361ee] text-white opacity-50 cursor-not-allowed"
                 : "bg-[#4361ee] text-[white] hover:bg-[#3251dd] transition-colors"

@@ -10,7 +10,7 @@ export default function Navbar() {
     >
       <div className="flex items-center font-bold text-[18px] text-[#4361ee]">
         <span className="mr-[10px]">🎓</span>
-        GradeSkipper
+        <span className="font-extrabold">GradeSkipper</span>
       </div>
       <div className="flex items-center gap-[10px]">
         <span className="text-[14px] text-[#555]">Welcome, Amelia!</span>
