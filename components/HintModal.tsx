@@ -37,7 +37,7 @@ export default function HintModal({ isOpen, onClose, hint }: HintModalProps) {
       }}
     >
       <div
-        className="bg-[white] rounded-[12px] p-[20px] shadow-xl w-[350px] max-sm:w-[90%] border border-[#eee]"
+        className="bg-[white] rounded-[12px] p-[20px] shadow-xl w-[350px] max-sm:w-[90%] border-2 border-[#4361ee]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-white rounded-[8px] p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">

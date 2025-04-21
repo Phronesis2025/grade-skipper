@@ -4,79 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getUserProgress } from "@/lib/storage";
 import { Progress } from "@/lib/types";
-import {
-  Book,
-  Check,
-  Clock,
-  Flame,
-  Lightbulb,
-  GraduationCap,
-  TestTube,
-  Landmark,
-  Pencil,
-  Code,
-  Puzzle,
-} from "lucide-react";
-
-// Subject data
-const subjects = [
-  {
-    id: "mathematics",
-    name: "Mathematics",
-    icon: GraduationCap,
-    iconColor: "text-[#4361ee]",
-    subtitle: "Fractions, Decimals, Algebra",
-    progressColor: "bg-[#4361ee]",
-  },
-  {
-    id: "reading",
-    name: "Reading",
-    icon: Book,
-    iconColor: "text-[#10b981]",
-    subtitle: "Comprehension, Analysis",
-    progressColor: "bg-[#10b981]",
-  },
-  {
-    id: "science",
-    name: "Science",
-    icon: TestTube,
-    iconColor: "text-[#8b5cf6]",
-    subtitle: "Earth Science, Biology",
-    progressColor: "bg-[#8b5cf6]",
-  },
-  {
-    id: "history",
-    name: "History",
-    icon: Landmark,
-    iconColor: "text-[#f59e0b]",
-    subtitle: "U.S. History, World Events",
-    progressColor: "bg-[#f59e0b]",
-  },
-  {
-    id: "english",
-    name: "English",
-    icon: Pencil,
-    iconColor: "text-[#f97316]",
-    subtitle: "Grammar, Writing",
-    progressColor: "bg-[#f97316]",
-  },
-  {
-    id: "coding-ai",
-    name: "Coding & AI",
-    icon: Code,
-    iconColor: "text-[#3b82f6]",
-    subtitle: "Basic Programming, AI Concepts",
-    progressColor: "bg-[#3b82f6]",
-  },
-  {
-    id: "logic-puzzles",
-    name: "Logic Puzzles",
-    icon: Puzzle,
-    iconColor: "text-[#ec4899]",
-    subtitle: "Problem Solving, Critical Thinking",
-    progressColor: "bg-[#ec4899]",
-  },
-];
+import { subjects } from "@/lib/subjects";
+import { Book, Check, Flame, Lightbulb, Star, Award } from "lucide-react";
 
 export default function Home() {
   const [userProgress, setUserProgress] = useState<Progress>({
@@ -133,40 +62,38 @@ export default function Home() {
           </div>
 
           {/* Stats Cards */}
-          <div className="flex flex-row gap-[15px] max-[640px]:flex-col">
+          <div className="flex flex-row gap-[15px] max-[640px]:grid max-[640px]:grid-cols-2 max-[640px]:gap-[15px]">
             <div className="flex-1 bg-[#f0f4ff] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#2f4ac7] rounded-[4px] w-[25px] h-[25px] flex items-center justify-center mb-[8px] border border-[#f0f4ff]">
-                <Book className="w-[16px] h-[16px] text-[white]" />
+                <Star className="w-[16px] h-[16px] text-[white]" />
               </div>
               <p className="text-[13px] text-[#555] mb-[3px]">
-                Questions Answered
+                Total Quiz Score %
               </p>
-              <p className="text-[20px] font-extrabold">{questionsAnswered}</p>
+              <p className="text-[20px] font-extrabold">75%</p>
             </div>
             <div className="flex-1 bg-[#ecfdf5] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#099465] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#ecfdf5]">
                 <Check className="text-[white] w-[16px] h-[16px]" />
               </div>
               <p className="text-[13px] text-[#555] mb-[3px]">
-                Topics Mastered
+                Quizzes Completed
               </p>
-              <p className="text-[20px] font-extrabold">{topicsMastered}</p>
+              <p className="text-[20px] font-extrabold">5</p>
             </div>
             <div className="flex-1 bg-[#f5f3ff] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#6d43c7] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#f5f3ff]">
-                <Clock className="w-[16px] h-[16px] text-[white]" />
+                <Flame className="w-[16px] h-[16px] text-[white]" />
               </div>
-              <p className="text-[13px] text-[#555] mb-[3px]">Learning Hours</p>
-              <p className="text-[20px] font-extrabold">{learningHours}</p>
+              <p className="text-[13px] text-[#555] mb-[3px]">Current Streak</p>
+              <p className="text-[20px] font-extrabold">1 day</p>
             </div>
             <div className="flex-1 bg-[#fff7ed] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#d97706] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#fff7ed]">
-                <Flame className="w-[16px] h-[16px] text-[white]" />
+                <Award className="w-[16px] h-[16px] text-[white]" />
               </div>
-              <p className="text-[13px] text-[#555] mb-[3px]">
-                {currentStreak > 1 ? "Current Streak" : "Longest Streak"}
-              </p>
-              <p className="text-[20px] font-extrabold">{currentStreak} days</p>
+              <p className="text-[13px] text-[#555] mb-[3px]">Achievements</p>
+              <p className="text-[20px] font-extrabold">0</p>
             </div>
           </div>
         </div>
@@ -178,6 +105,16 @@ export default function Home() {
               const Icon = subject.icon;
               const progress =
                 (subjectProgress as Record<string, number>)[subject.id] ?? 0;
+              const letterGrade =
+                progress >= 90
+                  ? "A"
+                  : progress >= 80
+                  ? "B"
+                  : progress >= 70
+                  ? "C"
+                  : progress >= 60
+                  ? "D"
+                  : "F";
               return (
                 <Link
                   key={subject.id}
@@ -188,7 +125,7 @@ export default function Home() {
                     className="rounded-[10px] p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
                     style={{
                       backgroundColor: "white",
-                      height: "180px",
+                      height: "175px",
                       width: "100%",
                     }}
                   >
@@ -212,8 +149,11 @@ export default function Home() {
                         }}
                       ></div>
                     </div>
-                    <p className="text-[12px] text-[#666] text-right">
+                    <p className="text-[12px] text-[#666] text-right mb-[5px]">
                       {progress}% Complete
+                    </p>
+                    <p className="text-[12px] text-[#666] text-left">
+                      6th grade - {progress}% total - {letterGrade}
                     </p>
                   </div>
                 </Link>

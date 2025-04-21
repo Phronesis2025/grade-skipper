@@ -6,71 +6,13 @@ import QuizCard from "@/components/QuizCard";
 import ProgressBar from "@/components/ProgressBar";
 import CalculatorModal from "@/components/CalculatorModal";
 import HintModal from "@/components/HintModal";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { useState, useEffect } from "react";
 import {
   mathematicsQuestions,
   MathQuestion,
 } from "@/lib/questions/mathematics";
-
-// Import the subjects array (same structure as in app/page.tsx)
-const subjects = [
-  {
-    id: "mathematics",
-    name: "Mathematics",
-    icon: null,
-    iconColor: "text-[#4361ee]",
-    subtitle: "Fractions, Decimals, Algebra",
-    progressColor: "bg-[#4361ee]",
-  },
-  {
-    id: "reading",
-    name: "Reading",
-    icon: null,
-    iconColor: "text-[#10b981]",
-    subtitle: "Comprehension, Analysis",
-    progressColor: "bg-[#10b981]",
-  },
-  {
-    id: "science",
-    name: "Science",
-    icon: null,
-    iconColor: "text-[#8b5cf6]",
-    subtitle: "Earth Science, Biology",
-    progressColor: "bg-[#8b5cf6]",
-  },
-  {
-    id: "history",
-    name: "History",
-    icon: null,
-    iconColor: "text-[#f59e0b]",
-    subtitle: "U.S. History, World Events",
-    progressColor: "bg-[#f59e0b]",
-  },
-  {
-    id: "english",
-    name: "English",
-    icon: null,
-    iconColor: "text-[#f97316]",
-    subtitle: "Grammar, Writing",
-    progressColor: "bg-[#f97316]",
-  },
-  {
-    id: "coding-ai",
-    name: "Coding & AI",
-    icon: null,
-    iconColor: "text-[#3b82f6]",
-    subtitle: "Basic Programming, AI Concepts",
-    progressColor: "bg-[#3b82f6]",
-  },
-  {
-    id: "logic-puzzles",
-    name: "Logic Puzzles",
-    icon: null,
-    iconColor: "text-[#ec4899]",
-    subtitle: "Problem Solving, Critical Thinking",
-    progressColor: "bg-[#ec4899]",
-  },
-];
+import { subjects } from "@/lib/subjects";
 
 // Function to select first 10 questions for SSR
 function getDefaultQuestions(): MathQuestion[] {
@@ -139,6 +81,7 @@ export default function QuizPage() {
   );
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isHintOpen, setIsHintOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Log state changes
   useEffect(() => {
@@ -221,16 +164,16 @@ export default function QuizPage() {
       `}</style>
       {/* Back to Subject link */}
       <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
-        <CustomLink
-          href={`/subject/${subjectId}`}
-          className="bg-[#4361ee] !text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0"
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
         >
           Back to {title}
-        </CustomLink>
+        </button>
       </div>
 
       {/* Main container */}
-      <div className="max-w-[800px] mx-auto p-[10px]">
+      <div className="max-w-[800px] mx-auto p-[10px] relative">
         {/* Main content card */}
         <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
           {/* Subject header */}
@@ -314,46 +257,50 @@ export default function QuizPage() {
               Hint
             </button>
 
-            {/* Calculator tool */}
-            <button
-              onClick={() => {
-                console.log("Calculator button clicked");
-                setIsCalculatorOpen(true);
-              }}
-              className="text-[14px] text-[#666] hover:text-[#4361ee] flex items-center gap-[5px] cursor-pointer bg-transparent border-none p-0 transition-colors duration-150"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-[20px] h-[20px]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {["mathematics", "science"].includes(subjectId) && (
+              <button
+                onClick={() => {
+                  console.log("Calculator button clicked");
+                  setIsCalculatorOpen(true);
+                }}
+                className="text-[14px] text-[#666] hover:text-[#4361ee] flex items-center gap-[5px] cursor-pointer bg-transparent border-none p-0 transition-colors duration-150"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-              Calculator
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-[20px] h-[20px]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                  />
+                </svg>
+                Calculator
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Modals */}
+        <CalculatorModal
+          isOpen={isCalculatorOpen}
+          onClose={() => setIsCalculatorOpen(false)}
+        />
+        <HintModal
+          isOpen={isHintOpen}
+          onClose={() => setIsHintOpen(false)}
+          hint={currentQuestion.hint}
+        />
+        <ConfirmationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={() => (window.location.href = `/subject/${subjectId}`)}
+        />
       </div>
-
-      {/* Calculator modal */}
-      <CalculatorModal
-        isOpen={isCalculatorOpen}
-        onClose={() => setIsCalculatorOpen(false)}
-      />
-
-      {/* Hint modal */}
-      <HintModal
-        isOpen={isHintOpen}
-        onClose={() => setIsHintOpen(false)}
-        hint={currentQuestion.hint}
-      />
     </div>
   );
 }

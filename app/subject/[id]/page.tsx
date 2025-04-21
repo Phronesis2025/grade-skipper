@@ -4,66 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import CustomLink from "@/components/CustomLink";
-
-// Import the subjects array from the homepage
-const subjects = [
-  {
-    id: "mathematics",
-    name: "Mathematics",
-    icon: null,
-    iconColor: "text-[#4361ee]",
-    subtitle: "Fractions, Decimals, Algebra",
-    progressColor: "bg-[#4361ee]",
-  },
-  {
-    id: "reading",
-    name: "Reading",
-    icon: null,
-    iconColor: "text-[#10b981]",
-    subtitle: "Comprehension, Analysis",
-    progressColor: "bg-[#10b981]",
-  },
-  {
-    id: "science",
-    name: "Science",
-    icon: null,
-    iconColor: "text-[#8b5cf6]",
-    subtitle: "Earth Science, Biology",
-    progressColor: "bg-[#8b5cf6]",
-  },
-  {
-    id: "history",
-    name: "History",
-    icon: null,
-    iconColor: "text-[#f59e0b]",
-    subtitle: "U.S. History, World Events",
-    progressColor: "bg-[#f59e0b]",
-  },
-  {
-    id: "english",
-    name: "English",
-    icon: null,
-    iconColor: "text-[#f97316]",
-    subtitle: "Grammar, Writing",
-    progressColor: "bg-[#f97316]",
-  },
-  {
-    id: "coding-ai",
-    name: "Coding & AI",
-    icon: null,
-    iconColor: "text-[#3b82f6]",
-    subtitle: "Basic Programming, AI Concepts",
-    progressColor: "bg-[#3b82f6]",
-  },
-  {
-    id: "logic-puzzles",
-    name: "Logic Puzzles",
-    icon: null,
-    iconColor: "text-[#ec4899]",
-    subtitle: "Problem Solving, Critical Thinking",
-    progressColor: "bg-[#ec4899]",
-  },
-];
+import { subjects } from "@/lib/subjects";
 
 export default function SubjectPage() {
   // Get the subject ID from the route parameter

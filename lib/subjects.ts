@@ -1,0 +1,68 @@
+import {
+  Book,
+  GraduationCap,
+  TestTube,
+  Landmark,
+  Pencil,
+  Code,
+  Puzzle,
+} from "lucide-react";
+
+export const subjects = [
+  {
+    id: "mathematics",
+    name: "Mathematics",
+    icon: GraduationCap,
+    iconColor: "text-[#4361ee]",
+    subtitle: "Fractions, Decimals, Algebra",
+    progressColor: "bg-[#4361ee]",
+  },
+  {
+    id: "reading",
+    name: "Reading",
+    icon: Book,
+    iconColor: "text-[#10b981]",
+    subtitle: "Comprehension, Analysis",
+    progressColor: "bg-[#10b981]",
+  },
+  {
+    id: "science",
+    name: "Science",
+    icon: TestTube,
+    iconColor: "text-[#8b5cf6]",
+    subtitle: "Earth Science, Biology",
+    progressColor: "bg-[#8b5cf6]",
+  },
+  {
+    id: "history",
+    name: "History",
+    icon: Landmark,
+    iconColor: "text-[#f59e0b]",
+    subtitle: "U.S. History, World Events",
+    progressColor: "bg-[#f59e0b]",
+  },
+  {
+    id: "english",
+    name: "English",
+    icon: Pencil,
+    iconColor: "text-[#f97316]",
+    subtitle: "Grammar, Writing",
+    progressColor: "bg-[#f97316]",
+  },
+  {
+    id: "coding-ai",
+    name: "Coding & AI",
+    icon: Code,
+    iconColor: "text-[#3b82f6]",
+    subtitle: "Basic Programming, AI Concepts",
+    progressColor: "bg-[#3b82f6]",
+  },
+  {
+    id: "logic-puzzles",
+    name: "Logic Puzzles",
+    icon: Puzzle,
+    iconColor: "text-[#ec4899]",
+    subtitle: "Problem Solving, Critical Thinking",
+    progressColor: "bg-[#ec4899]",
+  },
+];
