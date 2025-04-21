@@ -107,7 +107,7 @@ export default function SubjectPage() {
   return (
     <>
       {/* "Back to Home" button */}
-      <div className="flex justify-end max-w-[800px] mx-auto px-[25px] pt-[10px] max-sm:justify-center">
+      <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
         <CustomLink
           href="/"
           className="bg-[#4361ee] !text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline"
@@ -118,12 +118,12 @@ export default function SubjectPage() {
 
       {/* Main container */}
       <div
-        className="bg-[#F9FAFB] no-scrollbar-page scrollbar-width-none"
+        className="bg-[#F0F1F2] no-scrollbar-page scrollbar-width-none"
         style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
       >
-        <div className="max-w-[800px] mx-auto p-[10px] mt-[5px] max-sm:p-[15px] max-sm:mt-[50px]">
+        <div className="bg-[#F0F1F2] max-w-[400px] mx-auto p-[10px]">
           {/* Main content card */}
-          <div className="bg-white rounded-lg p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
+          <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
             <h1 className="text-[24px] font-bold text-[#333] mb-[5px]">
               {title}
             </h1>
@@ -132,7 +132,7 @@ export default function SubjectPage() {
             </p>
 
             {/* Grade selection radio buttons */}
-            <div className="flex flex-col gap-[8px] mb-[15px] max-w-[300px] mx-auto">
+            <div className="flex flex-col gap-[8px] mb-[15px] mx-auto">
               {/* 6th Grade - Enabled */}
               <div
                 className={`bg-[#F5F5F5] p-[6px] rounded-[6px] flex items-center cursor-pointer max-sm:min-h-[48px] ${
