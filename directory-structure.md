@@ -36,6 +36,7 @@ grade-skipper/
 │   ├── ConfirmationModal.tsx
 │   ├── CustomLink.tsx
 │   ├── HintModal.tsx
+│   ├── LoadingAnimation.tsx
 │   ├── ProgressBar.tsx
 │   └── QuizCard.tsx
 ├── lib/
@@ -95,6 +96,7 @@ grade-skipper/
    - `CalculatorModal.tsx` - Modal for calculator functionality
    - `ConfirmationModal.tsx` - Modal for user confirmations
    - `HintModal.tsx` - Modal for displaying hints
+   - `LoadingAnimation.tsx` - Reusable loading animation component
    - `ProgressBar.tsx` - Progress tracking component
    - `QuizCard.tsx` - Card component for quiz display
 
@@ -105,6 +107,7 @@ grade-skipper/
    - Enhanced storage capabilities with `storage.ts`
    - Added calculator and hint features for quiz assistance
    - Implemented question validation and correction logic
+   - Added loading states and animations for better UX
 
 3. UI/UX Improvements:
 
@@ -114,6 +117,7 @@ grade-skipper/
    - Improved navigation and layout components
    - Added visual feedback for quiz answers (green/red shading)
    - Updated favicon to SVG format
+   - Standardized loading animations across the application
 
 4. Development Tools:
    - Added ESLint configuration
@@ -121,3 +125,4 @@ grade-skipper/
    - Improved PostCSS setup
    - Added component configuration for UI library integration
    - Implemented proper error handling and logging
+   - Added debug logging for question explanations and API responses

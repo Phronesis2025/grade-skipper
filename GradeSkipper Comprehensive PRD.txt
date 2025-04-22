@@ -1,324 +1,410 @@
-# GradeSkipper Comprehensive PRD **Version:** 3.0 **Date:** April 22, 2025 **Author:** Grok 3 (xAI) **Purpose:** Provide a detailed, unified specification for the GradeSkipper application, an educational platform designed to help students assess knowledge, practice skills, and unlock achievements through interactive quizzes. This document consolidates requirements from prior PRDs, user flows, and clarifying questions, covering the homepage, grade-level selection page, quiz page, results page, and supporting features like OpenAI integration, storage, and achievements.
-1. Project Overview
+# GradeSkipper Comprehensive PRD
+**Version:** 3.1  
+**Date:** April 22, 2025  
+**Author:** Grok 3 (xAI)  
+**Purpose:** Provide a detailed, unified specification for the GradeSkipper application, an educational platform designed to help students assess knowledge, practice skills, and unlock achievements through interactive quizzes. This document consolidates requirements from prior PRDs, user flows, and clarifying questions, covering the homepage, grade-level selection page, quiz page, results page, and supporting features like OpenAI integration, storage, and achievements.
+
+## 1. Project Overview
 GradeSkipper is a Next.js-based educational platform aimed at helping students advance their studies through interactive quizzes and progress tracking. The app allows users to select subjects and grade levels, take quizzes with immediate feedback, review results, and track their learning progress. Key features include:
 
-User Journey: From the homepage, users select a subject, choose a grade level, take a quiz, review results, and return to the homepage with updated stats.
-Quiz Generation: Questions are generated dynamically using the OpenAI API (GPT-3.5-turbo), with caching to optimize performance.
-Progress Tracking: Stats, achievements, and subject progress are persisted (TBD: Supabase vs. local storage).
-Responsive Design: The app is fully responsive with accessibility features like keyboard navigation and large touch targets.
+- **User Journey:** From the homepage, users select a subject, choose a grade level, take a quiz, review results, and return to the homepage with updated stats.
+- **Quiz Generation:** Questions are generated dynamically using the OpenAI API (GPT-3.5-turbo), with caching to optimize performance.
+- **Progress Tracking:** Stats, achievements, and subject progress are persisted (TBD: Supabase vs. local storage).
+- **Responsive Design:** The app is fully responsive with accessibility features like keyboard navigation and large touch targets.
+
 The app uses Tailwind CSS for styling, Lucide Icons for visual elements, and TypeScript for type safety, ensuring a clean, modern, and maintainable codebase.
 
-2. User Journey Overview
-2.1 Opening the App: Homepage
-Purpose: Serve as the entry point, providing an overview of the user’s learning journey, stats, subject progress, and access to quizzes.
+## 2. User Journey Overview
 
-User Flow:
+### 2.1 Opening the App: Homepage
+**Purpose:** Serve as the entry point, providing an overview of the user’s learning journey, stats, subject progress, and access to quizzes.
 
-User opens the app, lands on the homepage (/).
-Views learning stats (Total Quiz Score %, Quizzes Completed, Current/Longest Streak, Achievements).
-Browses subject cards (Mathematics, Reading, Science, etc.) with progress percentages.
-Selects a subject (e.g., Mathematics) to navigate to the grade-level selection page (/subject/mathematics).
-Can return to the homepage at any point via "Back to Home" buttons on subsequent pages.
-UI Design:
+**User Flow:**
+- User opens the app, lands on the homepage (/).
+- Views learning stats (Total Quiz Score %, Quizzes Completed, Current/Longest Streak, Achievements).
+- Browses subject cards (Mathematics, Reading, Science, etc.) with progress percentages.
+- Selects a subject (e.g., Mathematics) to navigate to the grade-level selection page (/subject/mathematics).
+- Can return to the homepage at any point via "Back to Home" buttons on subsequent pages.
 
-Background: #F9FAFB (light gray), set in app/globals.css.
-Navbar: White (bg-white), padding: 10px 25px, "GradeSkipper" (🎓 icon, #4361ee, font-size: 18px, font-weight: 700) on the left, "Welcome, Amelia!" (font-size: 14px, #555, 32x32px avatar) on the right.
-Container: Full-width (no max-width), padding: 25px (px-[25px] py-[25px]).
-Learning Journey Section (white card, rounded-lg, p-[25px], mb-[30px], shadow-[0_1px_2px_rgba(0,0,0,0.05)]):
-Title: "Your Learning Journey" (text-[20px] font-bold text-[#333]).
-Points Badge: "⭐ 350 Points" (bg-[#F0F4FF] text-[#4361ee] rounded-[16px] px-3 py-[6px] text-sm font-medium).
-Stats Cards (flex flex-row gap-[15px], max-[640px]:flex-col):
-Total Quiz Score % (bg-[#f0f4ff], rounded-[10px] p-[10px], shadow-[0_1px_2px_rgba(0,0,0,0.05)]): Percentage of correct answers across all quizzes (text-[20px] font-extrabold).
-Quizzes Completed (bg-[#ecfdf5]): Number of completed quizzes.
-Current/Longest Streak (bg-[#f5f3ff]): Daily streak, switches to "Longest Streak" with max days if not current.
-Achievements (bg-[#fff7ed]): Count of earned badges.
-Each card has: Icon (16x16px, p-2 rounded-[2px] border matching card color), label (text-[13px] text-[#555]), value (text-[20px] font-extrabold).
-Subject Cards (grid grid-cols-3 gap-[15px] max-[768px]:grid-cols-2 max-[640px]:grid-cols-1, mb-[30px]):
-Cards: White, rounded-[10px], p-[10px], h-[180px], shadow-[0_1px_2px_rgba(0,0,0,0.05)].
-Content: Icon (18x18px, subject-specific color, e.g., #4361ee for Mathematics), title (text-[16px] font-semibold), topics (text-[13px] text-[#666]), progress bar (h-[6px], subject color), percentage (text-[12px] text-[#666] text-right).
-Last card (Logic Puzzles) centered (col-span-3 place-self-center max-[768px]:col-span-2 max-[640px]:col-span-1).
-Clicking a card navigates to /subject/[id] (e.g., /subject/mathematics).
-Recommended Next Steps (white card, rounded-lg, p-[25px], mb-[30px]):
-Title: "Recommended Next Steps" (text-[18px] font-bold text-left).
-Cards: Two cards (grid grid-cols-1 sm:grid-cols-2 gap-[15px]), bg-[#F0F7FF] (Math) and bg-[#ECFDF5] (Reading), rounded-lg, p-5, shadow-[0_1px_2px_rgba(0,0,0,0.05)], flex-col items-center, icon (16x16px), title (text-[15px] font-semibold), sub-header (text-[13px] text-[#555]).
-Footer: White (bg-white), padding: 10px 25px (px-[25px] pt-[10px]), text-center, text-[13px] text-[#666], "© 2025 GradeSkipper. Made by Dad."
-Behavior:
+**UI Design:**
+- **Background:** #F9FAFB (light gray), set in app/globals.css.
+- **Navbar:** White (bg-white), padding: 10px 25px, "GradeSkipper" (🎓 icon, #4361ee, font-size: 18px, font-weight: 700) on the left, "Welcome, Amelia!" (font-size: 14px, #555, 32x32px avatar) on the right.
+- **Container:** Full-width (no max-width), padding: 25px (px-[25px] py-[25px]).
+- **Learning Journey Section** (white card, rounded-lg, p-[25px], mb-[30px], shadow-[0_1px_2px_rgba(0,0,0,0.05)]):
+  - Title: "Your Learning Journey" (text-[20px] font-bold text-[#333]).
+  - Points Badge: "⭐ 350 Points" (bg-[#F0F4FF] text-[#4361ee] rounded-[16px] px-3 py-[6px] text-sm font-medium).
+  - Stats Cards (flex flex-row gap-[15px], max-[640px]:flex-col):
+    - Total Quiz Score % (bg-[#f0f4ff], rounded-[10px] p-[10px], shadow-[0_1px_2px_rgba(0,0,0,0.05)]): Percentage of correct answers across all quizzes (text-[20px] font-extrabold).
+    - Quizzes Completed (bg-[#ecfdf5]): Number of completed quizzes.
+    - Current/Longest Streak (bg-[#f5f3ff]): Daily streak, switches to "Longest Streak" with max days if not current.
+    - Achievements (bg-[#fff7ed]): Count of earned badges.
+    - Each card has: Icon (16x16px, p-2 rounded-[2px] border matching card color), label (text-[13px] text-[#555]), value (text-[20px] font-extrabold).
+- **Subject Cards** (grid grid-cols-3 gap-[15px] max-[768px]:grid-cols-2 max-[640px]:grid-cols-1, mb-[30px]):
+  - Cards: White, rounded-[10px], p-[10px], h-[180px], shadow-[0_1px_2px_rgba(0,0,0,0.05)].
+  - Content: Icon (18x18px, subject-specific color, e.g., #4361ee for Mathematics), title (text-[16px] font-semibold), topics (text-[13px] text-[#666]), progress bar (h-[6px], subject color), percentage (text-[12px] text-[#666] text-right).
+  - Last card (Logic Puzzles) centered (col-span-3 place-self-center max-[768px]:col-span-2 max-[640px]:col-span-1).
+  - Clicking a card navigates to /subject/[id] (e.g., /subject/mathematics).
+- **Recommended Next Steps** (white card, rounded-lg, p-[25px], mb-[30px]):
+  - Title: "Recommended Next Steps" (text-[18px] font-bold text-left).
+  - Cards: Two cards (grid grid-cols-1 sm:grid-cols-2 gap-[15px]), bg-[#F0F7FF] (Math) and bg-[#ECFDF5] (Reading), rounded-lg, p-5, shadow-[0_1px_2px_rgba(0,0,0,0.05)], flex-col items-center, icon (16x16px), title (text-[15px] font-semibold), sub-header (text-[13px] text-[#555]).
+- **Footer:** White (bg-white), padding: 10px 25px (px-[25px] pt-[10px]), text-center, text-[13px] text-[#666], "© 2025 GradeSkipper. Made by Dad."
 
-Stats update on page load via lib/storage.ts (e.g., getUserProgress).
-Subject progress persists across sessions, reflecting the latest quiz results.
-Clicking a subject card initiates the quiz flow by navigating to the grade-level selection page.
-2.2 Selecting a Subject: Navigation to Grade-Level Selection
-User Flow:
+**Behavior:**
+- Stats update on page load via lib/storage.ts (e.g., getUserProgress).
+- Subject progress persists across sessions, reflecting the latest quiz results.
+- Clicking a subject card initiates the quiz flow by navigating to the grade-level selection page.
 
-From the homepage, the user clicks a subject card (e.g., Mathematics).
-Navigates to /subject/[id] (e.g., /subject/mathematics), loading the grade-level selection page.
-2.3 Selecting a Grade: Grade-Level Selection Page
-Purpose: Allow users to select a grade level (6th, 7th, 8th, 9th) for a subject-specific quiz before starting.
+### 2.2 Selecting a Subject: Navigation to Grade-Level Selection
+**User Flow:**
+- From the homepage, the user clicks a subject card (e.g., Mathematics).
+- Navigates to /subject/[id] (e.g., /subject/mathematics), loading the grade-level selection page.
 
-User Flow:
+### 2.3 Selecting a Grade: Grade-Level Selection Page
+**Purpose:** Allow users to select a grade level (6th, 7th, 8th, 9th) for a subject-specific quiz before starting.
 
-User lands on the grade-level selection page after selecting a subject.
-Sees radio buttons for grade levels, selects one (e.g., 6th grade), and clicks "Start Quiz" to load the quiz page (/subject/[id]/quiz/[grade], e.g., /subject/mathematics/quiz/6).
-Can return to the homepage via the "Back to Home" button (no data saved).
-Features:
+**User Flow:**
+- User lands on the grade-level selection page after selecting a subject.
+- Sees radio buttons for grade levels, selects one (e.g., 6th grade), and clicks "Start Quiz" to load the quiz page (/subject/[id]/quiz/[grade], e.g., /subject/mathematics/quiz/6).
+- Can return to the homepage via the "Back to Home" button (no data saved).
 
-UI:
-Background: #F9FAFB (light gray), set in app/globals.css.
-Navbar: White (bg-white), padding: 10px 25px, "GradeSkipper" (🎓 icon, #4361ee, font-size: 18px, font-weight: 700) on the left, "Welcome, Amelia!" (font-size: 14px, #555, 32x32px avatar) on the right.
-Container: Centered, max-width: 400px, padding: 10px (p-[10px], temporary, to be revisited in Phase 4).
-Card: White (bg-white), rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)], centered (max-width: 400px).
-Subject Title: e.g., "Mathematics" (text-[24px] font-bold text-[#333]), centered.
-Subtitle: "Please select a grade level to start the quiz" (text-[16px] text-[#666]).
-Radio Buttons: Four options (6th, 7th, 8th, 9th grade, text-[16px] text-[#333]), blue highlight on selection (bg-[#E0E7FF]).
-"Start Quiz" Button: Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 8px 16px, font-size: 16px), disabled until a grade is selected.
-"Back to Home" Button: Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold), positioned top-right (flex justify-end, px-[25px], pt-[5px]), outside the grade selection card, navigates to /.
-Grade Locking:
-6th grade unlocked for all subjects by default.
-7th grade unlocks after mastering all 6th-grade quizzes (90%+ on 5 quizzes per subject across all subjects).
-8th grade unlocks after 7th-grade mastery; 9th after 8th.
-Locked grades shown as disabled radio buttons with a tooltip ("Master 6th grade to unlock", font-size: 12px, #666).
-Behavior:
+**Features:**
+**UI:**
+- **Background:** #F9FAFB (light gray), set in app/globals.css.
+- **Navbar:** White (bg-white), padding: 10px 25px, "GradeSkipper" (🎓 icon, #4361ee, font-size: 18px, font-weight: 700) on the left, "Welcome, Amelia!" (font-size: 14px, #555, 32x32px avatar) on the right.
+- **Container:** Centered, max-width: 400px, padding: 10px (p-[10px], temporary, to be revisited in Phase 4).
+- **Card:** White (bg-white), rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)], centered (max-width: 400px).
+- **Subject Title:** e.g., "Mathematics" (text-[24px] font-bold text-[#333]), centered.
+- **Subtitle:** "Please select a grade level to start the quiz" (text-[16px] text-[#666]).
+- **Radio Buttons:** Four options (6th, 7th, 8th, 9th grade, text-[16px] text-[#333]), blue highlight on selection (bg-[#E0E7FF]).
+- **"Start Quiz" Button:** Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 8px 16px, font-size: 16px), disabled until a grade is selected.
+- **"Back to Home" Button:** Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold), positioned top-right (flex justify-end, px-[25px], pt-[5px]), outside the grade selection card, navigates to /.
 
-On grade selection, the "Start Quiz" button becomes active.
-Clicking "Start Quiz" triggers navigation to /subject/[id]/quiz/[grade] and initiates an OpenAI API call to generate questions.
-Clicking "Back to Home" returns to / (no data saved).
-If the OpenAI call fails, an error state is shown (see Quiz Page).
-2.4 Completing a Quiz: Quiz Page
-Purpose: Deliver a subject-specific, grade-level quiz with 10 questions (5 for Coding & AI), providing immediate feedback and tools to support learning.
+**Grade Locking:**
+- 6th grade unlocked for all subjects by default.
+- 7th grade unlocks after mastering all 6th-grade quizzes (90%+ on 5 quizzes per subject across all subjects).
+- 8th grade unlocks after 7th-grade mastery; 9th after 8th.
+- Locked grades shown as disabled radio buttons with a tooltip ("Master 6th grade to unlock", font-size: 12px, #666).
 
-User Flow:
+**Behavior:**
+- On grade selection, the "Start Quiz" button becomes active.
+- Clicking "Start Quiz" triggers navigation to /subject/[id]/quiz/[grade] and initiates an OpenAI API call to generate questions.
+- Clicking "Back to Home" returns to / (no data saved).
+- If the OpenAI call fails, an error state is shown (see Quiz Page).
 
-From grade-level selection, the user starts the quiz (e.g., 6th-grade Mathematics).
-Sees the first question, selects an answer via radio button, and clicks "Submit Answer".
-Receives immediate feedback: Correct (green check, detailed explanation), incorrect (red X, green check on correct answer, detailed explanation specific to the selected option).
-Clicks "Next Question" to proceed, repeating for all questions.
-After the last question, navigates to the results page (/subject/[id]/results, e.g., /subject/mathematics/results).
-Can exit via "Back to [Subject]" (discards quiz data).
-Features:
+### 2.4 Completing a Quiz: Quiz Page
+**Purpose:** Deliver a subject-specific, grade-level quiz with 10 questions (5 for Coding & AI), providing immediate feedback and tools to support learning.
 
-UI:
-Matches approved index.html design:
-Navbar: Same as homepage (white, padding: 10px 25px, "GradeSkipper" left, "Welcome, Amelia!" right).
-Background: #F9FAFB.
-Container: Centered, max-width: 800px, padding: 10px (p-[10px], temporary, to be revisited).
-Card: White, rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)].
-"Back to [Subject]" Button: Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold), positioned top-right (flex justify-end, px-[25px], pt-[5px]), outside the quiz card, navigates to /subject/[id].
-Subject Header: Subject title (e.g., "Mathematics", text-[24px] font-bold text-[#333]), topic sub-header (e.g., "Fractions", text-[13px] text-[#666], updates per question, styled like homepage subtitles).
-Progress Bar: Black (#333, h-[6px], bg-[#eee]), shows questions answered (e.g., 50% at question 6/10), flanked by "Grade X" (text-[14px] text-[#555]).
-Question Card: White, rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)], containing:
-Question text (text-[18px] text-[#333]).
-4 radio buttons (multiple-choice) or 2 (true/false), #F5F5F5, padding: 10px, border-radius: 6px, font-size: 16px, blue background (#E0E7FF) on selection.
-"Submit Answer" button (bg-[#4361ee], text-[white], rounded-[6px], padding: 8px 16px, font-size: 16px), disabled until selection.
-Feedback area (post-submit): Green check for correct, red X for incorrect (plus green check on correct answer), OpenAI explanation (text-[14px] text-[#333], white background, padding: 10px, border-radius: 6px).
-"Next Question" button (replaces "Submit Answer" post-feedback, same style).
-Tools:
-Hint Button (#666, font-size: 14px, #4361ee on hover, 20x20px icon), shows static OpenAI hint (text-[14px] text-[#333], below question).
-Calculator Button (same style), opens modal for relevant subjects/topics (Mathematics, Science), hidden for others (Reading, History, English, Coding & AI, Logic Puzzles).
-Loading State: Centered spinner (#4361ee, inside question card area) with "Loading your quiz questions, please wait..." (text-[16px] text-[#333]) during OpenAI call (>2 seconds).
-Error State: If OpenAI fails, show "No quiz available" (text-[18px] text-[#333]), with "Retry" (bg-[#4361ee], text-[white] button) and "Back to [Subject]" (bg-[#4361ee], text-[white] button) buttons.
-Behavior:
+**User Flow:**
+- From grade-level selection, the user starts the quiz (e.g., 6th-grade Mathematics).
+- Sees the first question, selects an answer via radio button, and clicks "Submit Answer".
+- Receives immediate feedback: Correct (green check, detailed explanation), incorrect (red X, green check on correct answer, detailed explanation specific to the selected option).
+- Clicks "Next Question" to proceed, repeating for all questions.
+- After the last question, navigates to the results page (/subject/[id]/results, e.g., /subject/mathematics/results).
+- Can exit via "Back to [Subject]" (discards quiz data).
 
-OpenAI generates 10 questions (5 for Coding & AI) on "Start Quiz" click, with randomized order.
-Questions are cached in memory (app/api/questions/route.ts) to speed up subsequent requests for the same grade and count.
-Radio button selection highlights with a blue background, changeable until submit.
-"Submit Answer" validates the answer against OpenAI’s correct answer, shows feedback (check/X, explanation below tools), and replaces "Submit Answer" with "Next Question".
-"Next Question" loads the next question, updates the progress bar and topic sub-header.
-No skipping or previous navigation; sequential answering.
-After the last question, navigates to the results page (/subject/[id]/results).
-"Back to [Subject]" discards quiz data, returning to /subject/[id].
-Timeout after 30 seconds of OpenAI call, showing the error state.
-Quiz Length:
+**Features:**
+**UI:**
+- Matches approved index.html design:
+  - **Navbar:** Same as homepage (white, padding: 10px 25px, "GradeSkipper" left, "Welcome, Amelia!" right).
+  - **Background:** #F9FAFB.
+  - **Container:** Centered, max-width: 800px, padding: 10px (p-[10px], temporary, to be revisited).
+  - **Card:** White, rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)].
+  - **"Back to [Subject]" Button:** Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold), positioned top-right (flex justify-end, px-[25px], pt-[5px]), outside the quiz card, navigates to /subject/[id].
+  - **Subject Header:** Subject title (e.g., "Mathematics", text-[24px] font-bold text-[#333]), topic sub-header (e.g., "Fractions", text-[13px] text-[#666], updates per question, styled like homepage subtitles).
+  - **Progress Bar:** Black (#333, h-[6px], bg-[#eee]), shows questions answered (e.g., 50% at question 6/10), flanked by "Grade X" (text-[14px] text-[#555]).
+  - **Question Card:** White, rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)], containing:
+    - **Passage (for Reading Comprehension):** For Reading subject questions tagged as "Comprehension" or referring to a passage (e.g., "What is the main idea of the passage?"), a passage (3-5 sentences) is displayed above the question (text-[16px] text-[#333], p-[10px], bg-[#F5F5F5], rounded-[6px]). Passages are omitted for non-comprehension questions (e.g., Vocabulary, True/False).
+    - Question text (text-[18px] text-[#333]).
+    - 4 radio buttons (multiple-choice) or 2 (true/false), #F5F5F5, padding: 10px, border-radius: 6px, font-size: 16px, blue background (#E0E7FF) on selection.
+    - "Submit Answer" button (bg-[#4361ee], text-[white], rounded-[6px], padding: 8px 16px, font-size: 16px), disabled until selection.
+    - Feedback area (post-submit): Green check for correct, red X for incorrect (plus green check on correct answer), OpenAI explanation (text-[14px] text-[#333], white background, padding: 10px, border-radius: 6px).
+    - "Next Question" button (replaces "Submit Answer" post-feedback, same style).
+- **Tools:**
+  - Hint Button (#666, font-size: 14px, #4361ee on hover, 20x20px icon), shows static OpenAI hint (text-[14px] text-[#333], below question).
+  - Calculator Button (same style), opens modal for relevant subjects/topics (Mathematics, Science), hidden for others (Reading, History, English, Coding & AI, Logic Puzzles).
+- **Loading State:** Replaced with a custom `LoadingAnimation` component (components/LoadingAnimation.tsx), showing an animated book, flipping page, and pencil with cycling messages (e.g., "Loading Knowledge", "Preparing Lessons", "Getting Ready", "Almost There", updated every 3 seconds). The animation is centered in the question card area during OpenAI calls (>2 seconds). Accessibility: Includes `aria-live="polite"` for screen reader updates and a `prefers-reduced-motion` media query to disable animations for users who prefer reduced motion.
+- **Error State:** If OpenAI fails, show "No quiz available" (text-[18px] text-[#333]), with "Retry" (bg-[#4361ee], text-[white] button) and "Back to [Subject]" (bg-[#4361ee], text-[white] button) buttons.
 
-All subjects have 10 questions except for Coding & AI, which have 5 questions.
-2.5 Viewing Results: Results Page
-Purpose: Display the quiz score, allow question review, and provide navigation options.
+**Behavior:**
+- OpenAI generates 10 questions (5 for Coding & AI) on "Start Quiz" click, with randomized order.
+- Questions are cached in memory (app/api/questions/route.ts) to speed up subsequent requests for the same grade and count.
+- Radio button selection highlights with a blue background, changeable until submit.
+- "Submit Answer" validates the answer against OpenAI’s correct answer, shows feedback (check/X, explanation below tools), and replaces "Submit Answer" with "Next Question". Explanations for incorrect answers are specific to the selected option, using OpenAI-generated `explanations.incorrect` (e.g., "The Golgi Apparatus is responsible for packaging and distributing proteins, not energy production" for an incorrect choice in a Science quiz).
+- "Next Question" loads the next question, updates the progress bar and topic sub-header.
+- No skipping or previous navigation; sequential answering.
+- After the last question, navigates to the results page (/subject/[id]/results).
+- "Back to [Subject]" discards quiz data, returning to /subject/[id].
+- Timeout after 30 seconds of OpenAI call, showing the error state.
 
-User Flow:
+**Quiz Length:**
+- All subjects have 10 questions except for Coding & AI, which have 5 questions.
 
-After the last question, the user lands on the results page.
-Sees the score (# correct, # incorrect, percentage), reviews questions via an accordion.
-Chooses to return home, take another quiz of the same subject, or retake the same quiz (if score <100%).
-Confirms exit before returning home.
-Features:
+### 2.5 Viewing Results: Results Page
+**Purpose:** Display the quiz score, allow question review, and provide navigation options.
 
-UI:
-Matches homepage/quiz page design: #F0F1F2 background, white card (rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)]), centered (max-width: 800px).
-Navbar: Same as homepage.
-Back to Home Button: Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold), positioned top-right (flex justify-end, px-[25px], pt-[5px]), outside the results card, navigates to /.
-Score Summary: "Quiz Score: X/Y (Z%)" (text-[24px] font-bold text-[#333]), with # correct, # incorrect (text-[16px] text-[#333]), currently static as "Score: 8/10 Correct", "80%".
-Accordion-Style Question Review:
-Each question collapsible (text-[18px] text-[#333]), labeled with the question text (e.g., "What is 24/32 simplified?"), truncated if too long (truncate).
-Header shaded based on correctness: #e6f7e9 (light green) for correct, #ffebee (light red) for incorrect.
-Content shows: Full question text (text-[14px] text-[#333]), user answer with green check (text-green-500) or red X (text-red-500), correct answer with green check, explanation for incorrect answers only (text-[14px] text-[#333]).
-Navigation Buttons:
-"Return to Home" (bg-[#4361ee], text-[white], rounded-[6px], padding: 8px 16px), confirms exit ("Are you sure?", modal with "Yes"/"Cancel").
-"Take Another Quiz" (same style, labeled "Back to [Subject]"), returns to grade selection page (/subject/[id]).
-"Retake Quiz" (same style), shown if score <100%, restarts the same quiz with the same questions, overwrites score if higher.
-Behavior:
+**User Flow:**
+- After the last question, the user lands on the results page.
+- Sees the score (# correct, # incorrect, percentage), reviews questions via an accordion.
+- Chooses to return home, take another quiz of the same subject, or retake the same quiz (if score <100%).
+- Confirms exit before returning home.
 
-Displays score based on quiz answers (e.g., 8/10 = 80%).
-Accordion toggles to show/hide question details (one item open at a time).
-"Return to Home" prompts confirmation, updates homepage stats if confirmed.
-"Take Another Quiz" reloads grade selection without saving current quiz data.
-"Retake Quiz" restarts the quiz with the same questions, overwrites the score if higher, and is hidden if the score is 100%.
-2.6 Returning to Homepage
-User Flow:
+**Features:**
+**UI:**
+- Matches homepage/quiz page design: #F0F1F2 background, white card (rounded-[10px], padding: 10px (p-[10px], temporary, to be revisited), shadow-[0_1px_2px_rgba(0,0,0,0.05)]), centered (max-width: 800px).
+- **Navbar:** Same as homepage.
+- **Back to Home Button:** Blue (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold), positioned top-right (flex justify-end, px-[25px], pt-[5px]), outside the results card, navigates to /.
+- **Score Summary:** "Quiz Score: X/Y (Z%)" (text-[24px] font-bold text-[#333]), with # correct, # incorrect (text-[16px] text-[#333]), currently static as "Score: 8/10 Correct", "80%".
+- **Accordion-Style Question Review:**
+  - Each question collapsible (text-[18px] text-[#333]), labeled with the question text (e.g., "What is 24/32 simplified?"), truncated if too long (truncate).
+  - Header shaded based on correctness: #e6f7e9 (light green) for correct, #ffebee (light red) for incorrect.
+  - Content shows: Full question text (text-[14px] text-[#333]), user answer with green check (text-green-500) or red X (text-red-500), correct answer with green check, explanation for incorrect answers only (text-[14px] text-[#333]).
+- **Navigation Buttons:**
+  - "Return to Home" (bg-[#4361ee], text-[white], rounded-[6px], padding: 8px 16px), confirms exit ("Are you sure?", modal with "Yes"/"Cancel").
+  - "Take Another Quiz" (same style, labeled "Back to [Subject]"), returns to grade selection page (/subject/[id]).
+  - "Retake Quiz" (same style), shown if score <100%, restarts the same quiz with the same questions, overwrites score if higher.
 
-From the results page, the user selects "Return to Home" (after confirmation).
-Lands on the homepage (/), sees updated stats:
-Total Quiz Score % recalculated (correct answers ÷ total questions).
-Quizzes Completed incremented (+1).
-Current/Longest Streak updated (daily increment, reset on missed days).
-Achievements count updated (e.g., +1 for mastery).
-Subject progress updated (e.g., Mathematics progress increases based on quiz score).
-Points updated (+1 per correct, +10 for 90%+ quiz, +25 per achievement).
-Can select another subject or grade to start a new quiz.
-3. Functional Requirements
-3.1 Homepage
-Purpose: Provide an overview of user progress, stats, and access to subject-specific quizzes.
+**Behavior:**
+- Displays score based on quiz answers (e.g., 8/10 = 80%).
+- Accordion toggles to show/hide question details (one item open at a time).
+- "Return to Home" prompts confirmation, updates homepage stats if confirmed.
+- "Take Another Quiz" reloads grade selection without saving current quiz data.
+- "Retake Quiz" restarts the quiz with the same questions, overwrites the score if higher, and is hidden if the score is 100%.
 
-Features:
+### 2.6 Returning to Homepage
+**User Flow:**
+- From the results page, the user selects "Return to Home" (after confirmation).
+- Lands on the homepage (/), sees updated stats:
+  - Total Quiz Score % recalculated (correct answers ÷ total questions).
+  - Quizzes Completed incremented (+1).
+  - Current/Longest Streak updated (daily increment, reset on missed days).
+  - Achievements count updated (e.g., +1 for mastery).
+  - Subject progress updated (e.g., Mathematics progress increases based on quiz score).
+  - Points updated (+1 per correct, +10 for 90%+ quiz, +25 per achievement).
+- Can select another subject or grade to start a new quiz.
 
-Stats (Reordered):
-Total Quiz Score %: Correct answers ÷ total questions across all quizzes (text-[20px] font-extrabold, bg-[#f0f4ff]).
-Quizzes Completed: +1 per quiz completed (bg-[#ecfdf5]).
-Current/Longest Streak: Daily increment, reset on missed days, shows "Longest Streak" with max days, switches to "Current Streak" when surpassing previous best (bg-[#f5f3ff]).
-Achievements: Count of earned badges (bg-[#fff7ed]).
-Subject Progress:
-90%+ on 5 quizzes per subject/grade for mastery.
-Progress capped at 100%, unlocks the next grade level.
-Points:
-+1 per correct answer.
-+10 per quiz with 90%+ score.
-+25 per achievement.
-Behavior:
+## 3. Functional Requirements
 
-Stats update on page load via lib/storage.ts.
-Subject cards link to the grade-level selection page (/subject/[id]).
-Progress persists across sessions, reflecting the latest quiz results.
-3.2 Grade-Level Selection Page
+### 3.1 Homepage
+**Purpose:** Provide an overview of user progress, stats, and access to subject-specific quizzes.
+
+**Features:**
+- **Stats (Reordered):**
+  - Total Quiz Score %: Correct answers ÷ total questions across all quizzes (text-[20px] font-extrabold, bg-[#f0f4ff]).
+  - Quizzes Completed: +1 per quiz completed (bg-[#ecfdf5]).
+  - Current/Longest Streak: Daily increment, reset on missed days, shows "Longest Streak" with max days, switches to "Current Streak" when surpassing previous best (bg-[#f5f3ff]).
+  - Achievements: Count of earned badges (bg-[#fff7ed]).
+- **Subject Progress:**
+  - 90%+ on 5 quizzes per subject/grade for mastery.
+  - Progress capped at 100%, unlocks the next grade level.
+- **Points:**
+  - +1 per correct answer.
+  - +10 per quiz with 90%+ score.
+  - +25 per achievement.
+
+**Behavior:**
+- Stats update on page load via lib/storage.ts.
+- Subject cards link to the grade-level selection page (/subject/[id]).
+- Progress persists across sessions, reflecting the latest quiz results.
+
+### 3.2 Grade-Level Selection Page
 Detailed in Section 2.3.
 
-3.3 Quiz Page
+### 3.3 Quiz Page
 Detailed in Section 2.4.
 
-3.4 Results Page
+### 3.4 Results Page
 Detailed in Section 2.5.
 
-3.5 Data and Content
-Question Source:
-All quiz questions, answers, hints, and explanations are generated by OpenAI.
-On "Start Quiz" click, an API call generates 10 grade-level questions (5 for Coding & AI) for the selected subject, including 4 multiple-choice answers (or 2 for True/False), a topic tag, a hint, and detailed explanations for both correct and incorrect answers. Incorrect explanations are specific to each option (e.g., { "A": "...", "B": "...", "C": "...", "D": "..." }).
-The OpenAI API call is optimized with in-memory caching (app/api/questions/route.ts) and a lower temperature setting (0.4) to reduce generation time.
-TBD: Discuss setting up a database to store questions and related data.
-Question Format:
-Questions are either multiple choice (4 options) or True/False.
-Correct Answers:
-OpenAI provides the correct answer as a letter (A, B, C, D for multiple choice; A, B for True/False).
-During the quiz, questions and answers are stored in memory (useState) in app/subject/[id]/quiz/[grade]/page.tsx.
-Post-completion, results are saved to Supabase (TBD: finalize schema).
-Randomization:
-Questions are randomized in order for each quiz.
-Subject-Specific Content:
-Questions cover a mix of topics pertinent to the subject, each tagged with a topic (e.g., Fractions).
-Tags are used to track focus areas for improvement.
-3.6 User Interactions
-Answer Selection:
-Users select answers via radio buttons, with a blue shaded background (#E0E7FF) on selection.
-Users can change their selection before submitting.
-The "Submit Answer" button is disabled until an answer is selected.
-No "Previous" button; users cannot skip questions and must answer sequentially.
-Navigation:
-Submit Answer: See Section 2.4 for actions post-submission.
-No retry for incorrect answers.
-After the last question, navigates to the results page.
-Tools:
-Hint: Displays a static text hint (e.g., “Divide numerator and denominator by their GCD”), generated by OpenAI.
-Calculator: Opens a simple modal with basic operations (+, -, *, /), shown for Mathematics and Science, hidden for Reading, History, English, Coding & AI, Logic Puzzles. Implementation TBD (search for a free React calculator component like react-simple-calculator).
-Notes: Not needed, removed.
-Progress Bar:
-Shows progress through the 10 questions (e.g., 50% at question 6/10).
-3.7 Progress Tracking and Integration
-Homepage Stats:
-Order:
-Total Quiz Score %: Correct answers ÷ total questions across all quizzes.
-Quizzes Completed: Increment by 1 for each quiz completed.
-Current Streak/Longest Streak: Increment daily (e.g., streak becomes 2 if a quiz is taken today). Reset on missed days. "Current Streak" title switches to "Longest Streak" with max days; switches back to "Current Streak" when surpassing the previous best.
-Achievements: Display the number of earned achievements.
-Subject Progress:
-Users must achieve 90%+ on 5 grade-level quizzes per subject to achieve mastery.
-Mastery unlocks the next grade level.
-Progress capped at 100% per grade level per subject.
-Progress is stored for continued learning.
-Points:
-+1 point per correct answer.
-+10 points per quiz with 90%+ score.
-+25 points per achievement earned.
-Storage:
-TBD: Finalize Supabase vs. local storage. Supabase is preferred for persistent data across devices (free tier available). Temporary storage during the quiz uses React state (useState) in app/subject/[id]/quiz/[grade]/page.tsx.
-3.8 Visual and Behavioral Feedback
-Correct/Incorrect Feedback:
-After submitting each question:
-Correct Answer: Green check mark next to the selected answer, with a detailed explanation (e.g., "Great job! You recognized that 0.75 is the same as 75/100, which simplifies to 3/4. Keep practicing converting decimals to fractions!").
-Incorrect Answer: Red X next to the selected answer, green check next to the correct answer, with a detailed explanation specific to the user’s selection (e.g., "Option D (2/3) is incorrect. When you divide 2 by 3, you get approximately 0.666, which is less than 0.75. To convert 0.75 to a fraction, recognize that 0.75 = 75/100, which simplifies to 3/4, so the correct answer is option A.").
-Explanation appears below Hint and Calculator buttons, styled to match the page (text-[14px] text-[#333], white background, padding: 10px, border-radius: 6px).
-Error Handling:
-"Submit Answer" button disabled until an answer is selected.
-"No quiz available" shown if no data for the subject (e.g., OpenAI API call fails), with "Retry" and "Back to [Subject]" buttons.
-Loading State:
-A loading spinner (#4361ee) with the message "Loading your quiz questions, please wait..." (text-[16px] text-[#333]) is shown inside the question card area during OpenAI calls (>2 seconds).
-Spinner shown anytime the user waits more than 2 seconds.
-Completion Feedback:
-After quiz completion, users navigate to the results page to view their score and review questions.
-3.9 Edge Cases and Constraints
-Quiz Availability:
-Questions are generated by OpenAI.
-Grade levels above 6th are locked until mastery is achieved for the prior grade.
-Time Limits:
-No time limits.
-Interruptions:
-Restart from question 1 if interrupted.
-No quiz data saved until completion.
-Attempts:
-Users can retake quizzes as many times as desired.
-Higher scores override previous scores.
-No retake option if the user achieves 100%.
-4. Technical Specifications
-4.1 Architecture
-Framework: Next.js 13+ (App Router), React for components.
-File Structure:
-app/page.tsx: Homepage (already implemented, stats order updated).
-app/subject/[id]/page.tsx: Grade-level selection page, with "Back to Home" button.
-app/subject/[id]/quiz/[grade]/page.tsx: Quiz page, with "Back to [Subject]" button.
-app/subject/[id]/results/page.tsx: Results page, with "Back to Home" button.
-app/api/questions/route.ts: API route for OpenAI question generation, with in-memory caching.
-components/QuizCard.tsx: Question card with radio buttons, feedback, tools.
-components/ProgressBar.tsx: Black progress bar.
-components/CalculatorModal.tsx: Calculator tool.
-components/Accordion.tsx: Results page question review.
-components/RadioButtonGroup.tsx: Reusable radio buttons for grade selection.
-lib/storage.ts: Persists progress, stats, points (TBD: Supabase integration).
-lib/openai.ts: OpenAI API client for question generation (TBD: implement as a separate utility).
-Routing: Dynamic routes ([id], [grade]) for subject and grade, validated client-side (e.g., id in [mathematics, reading, ...]).
-Notes:
+### 3.5 Data and Content
+**Question Source:**
+- All quiz questions, answers, hints, and explanations are generated by OpenAI.
+- On "Start Quiz" click, an API call generates 10 grade-level questions (5 for Coding & AI) for the selected subject, including 4 multiple-choice answers (or 2 for True/False), a topic tag, a hint, and detailed explanations for both correct and incorrect answers. Incorrect explanations are specific to each option (e.g., { "A": "...", "B": "...", "C": "...", "D": "..." }).
+- The OpenAI API call is optimized with in-memory caching (app/api/questions/route.ts) and a lower temperature setting (0.4) to reduce generation time.
+- **TBD:** Discuss setting up a database to store questions and related data.
 
-Temporary padding (p-[10px]) for containers and cards to be revisited in Phase 4 for alignment with subject card styles or PRD’s p-[25px].
-All "Back to Home" and "Back to [Subject]" buttons use a consistent blue style (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold) and top-right position (flex justify-end, px-[25px], pt-[5px]).
-4.2 OpenAI Integration
-API: OpenAI Chat Completions API, GPT-3.5-turbo model (temperature: 0.4 for faster generation).
-Prompt:
-Input: "Generate 10 multiple-choice or true/false questions for [grade]-grade [subject], each with: 4 answer options (or 2 for true/false), a correct answer, a topic tag (e.g., Fractions), a hint, detailed explanations for correct and incorrect answers. Incorrect explanations are specific to each option (e.g., { 'A': '...', 'B': '...', 'C': '...', 'D': '...' })."
-Output: JSON array, e.g.:
+**Question Format:**
+- Questions are either multiple choice (4 options) or True/False.
+- For Reading subject questions tagged as "Comprehension" or referring to a passage (e.g., "What is the main idea of the passage?"), OpenAI generates a short passage (3-5 sentences) included in the response as a `passage` field.
+
+**Correct Answers:**
+- OpenAI provides the correct answer as a letter (A, B, C, D for multiple choice; A, B for True/False).
+- During the quiz, questions and answers are stored in memory (useState) in app/subject/[id]/quiz/[grade]/page.tsx.
+- Post-completion, results are saved to Supabase (TBD: finalize schema).
+
+**Randomization:**
+- Questions are randomized in order for each quiz.
+
+**Subject-Specific Content:**
+- Questions cover a mix of topics pertinent to the subject, each tagged with a topic (e.g., Fractions).
+- Tags are used to track focus areas for improvement.
+
+### 3.6 User Interactions
+**Answer Selection:**
+- Users select answers via radio buttons, with a blue shaded background (#E0E7FF) on selection.
+- Users can change their selection before submitting.
+- The "Submit Answer" button is disabled until an answer is selected.
+- No "Previous" button; users cannot skip questions and must answer sequentially.
+
+**Navigation:**
+- **Submit Answer:** See Section 2.4 for actions post-submission.
+- No retry for incorrect answers.
+- After the last question, navigates to the results page.
+
+**Tools:**
+- **Hint:** Displays a static text hint (e.g., “Divide numerator and denominator by their GCD”), generated by OpenAI.
+- **Calculator:** Opens a simple modal with basic operations (+, -, *, /), shown for Mathematics and Science, hidden for Reading, History, English, Coding & AI, Logic Puzzles. Implementation TBD (search for a free React calculator component like react-simple-calculator).
+- **Notes:** Not needed, removed.
+
+**Progress Bar:**
+- Shows progress through the 10 questions (e.g., 50% at question 6/10).
+
+### 3.7 Progress Tracking and Integration
+**Homepage Stats:**
+- **Order:**
+  - Total Quiz Score %: Correct answers ÷ total questions across all quizzes.
+  - Quizzes Completed: Increment by 1 for each quiz completed.
+  - Current Streak/Longest Streak: Increment daily (e.g., streak becomes 2 if a quiz is taken today). Reset on missed days. "Current Streak" title switches to "Longest Streak" with max days; switches back to "Current Streak" when surpassing the previous best.
+  - Achievements: Display the number of earned achievements.
+- **Subject Progress:**
+  - Users must achieve 90%+ on 5 grade-level quizzes per subject to achieve mastery.
+  - Mastery unlocks the next grade level.
+  - Progress capped at 100% per grade level per subject.
+  - Progress is stored for continued learning.
+- **Points:**
+  - +1 point per correct answer.
+  - +10 points per quiz with 90%+ score.
+  - +25 points per achievement earned.
+
+**Storage:**
+- TBD: Finalize Supabase vs. local storage. Supabase is preferred for persistent data across devices (free tier available). Temporary storage during the quiz uses React state (useState) in app/subject/[id]/quiz/[grade]/page.tsx.
+
+### 3.8 Visual and Behavioral Feedback
+**Correct/Incorrect Feedback:**
+- After submitting each question:
+  - **Correct Answer:** Green check mark next to the selected answer, with a detailed explanation (e.g., "Great job! You recognized that 0.75 is the same as 75/100, which simplifies to 3/4. Keep practicing converting decimals to fractions!").
+  - **Incorrect Answer:** Red X next to the selected answer, green check next to the correct answer, with a detailed explanation specific to the user’s selection (e.g., "Option D (2/3) is incorrect. When you divide 2 by 3, you get approximately 0.666, which is less than 0.75. To convert 0.75 to a fraction, recognize that 0.75 = 75/100, which simplifies to 3/4, so the correct answer is option A."). Fixed to ensure specific `explanations.incorrect` from OpenAI or fallback questions are used, rather than default messages (e.g., "The Golgi Apparatus is responsible for packaging and distributing proteins, not energy production" for a Science question).
+- Explanation appears below Hint and Calculator buttons, styled to match the page (text-[14px] text-[#333], white background, padding: 10px, border-radius: 6px).
+
+**Passage Display (Reading Comprehension):**
+- For Reading subject questions tagged as "Comprehension" or referring to a passage (e.g., "What is the main idea of the passage?"), a passage (3-5 sentences) is displayed above the question (text-[16px] text-[#333], p-[10px], bg-[#F5F5F5], rounded-[6px]). Passages are omitted for non-comprehension questions (e.g., Vocabulary, True/False).
+
+**Error Handling:**
+- "Submit Answer" button disabled until an answer is selected.
+- "No quiz available" shown if no data for the subject (e.g., OpenAI API call fails), with "Retry" and "Back to [Subject]" buttons.
+
+**Loading State:**
+- Replaced with a custom `LoadingAnimation` component (components/LoadingAnimation.tsx), showing an animated book, flipping page, and pencil with cycling messages (e.g., "Loading Knowledge", "Preparing Lessons", "Getting Ready", "Almost There", updated every 3 seconds). The animation is centered in the question card area during OpenAI calls (>2 seconds). Accessibility: Includes `aria-live="polite"` for screen reader updates and a `prefers-reduced-motion` media query to disable animations for users who prefer reduced motion.
+
+**Completion Feedback:**
+- After quiz completion, users navigate to the results page to view their score and review questions.
+
+### 3.9 Edge Cases and Constraints
+**Quiz Availability:**
+- Questions are generated by OpenAI.
+- Grade levels above 6th are locked until mastery is achieved for the prior grade.
+
+**Time Limits:**
+- No time limits.
+
+**Interruptions:**
+- Restart from question 1 if interrupted.
+- No quiz data saved until completion.
+
+**Attempts:**
+- Users can retake quizzes as many times as desired.
+- Higher scores override previous scores.
+- No retake option if the user achieves 100%.
+
+## 4. Technical Specifications
+
+### 4.1 Architecture
+**Framework:** Next.js 13+ (App Router), React for components.
+
+**File Structure:**
+- app/page.tsx: Homepage (already implemented, stats order updated).
+- app/subject/[id]/page.tsx: Grade-level selection page, with "Back to Home" button.
+- app/subject/[id]/quiz/[grade]/page.tsx: Quiz page, with "Back to [Subject]" button.
+- app/subject/[id]/results/page.tsx: Results page, with "Back to Home" button.
+- app/api/questions/route.ts: API route for OpenAI question generation, with in-memory caching.
+- components/QuizCard.tsx: Question card with radio buttons, feedback, tools.
+- components/ProgressBar.tsx: Black progress bar.
+- components/CalculatorModal.tsx: Calculator tool.
+- components/Accordion.tsx: Results page question review.
+- components/RadioButtonGroup.tsx: Reusable radio buttons for grade selection.
+- components/LoadingAnimation.tsx: Custom loading animation for OpenAI question generation.
+- lib/storage.ts: Persists progress, stats, points (TBD: Supabase integration).
+- lib/openai.ts: OpenAI API client for question generation (TBD: implement as a separate utility).
+
+**Routing:** Dynamic routes ([id], [grade]) for subject and grade, validated client-side (e.g., id in [mathematics, reading, ...]).
+
+**Notes:**
+- Temporary padding (p-[10px]) for containers and cards to be revisited in Phase 4 for alignment with subject card styles or PRD’s p-[25px].
+- All "Back to Home" and "Back to [Subject]" buttons use a consistent blue style (bg-[#4361ee], text-[white], rounded-[6px], padding: 12px 6px, font-size: 14px, font-semibold) and top-right position (flex justify-end, px-[25px], pt-[5px]).
+
+### 4.2 OpenAI Integration
+**API:** OpenAI Chat Completions API, GPT-3.5-turbo model (temperature: 0.4 for faster generation).
+
+**Prompt:**
+- Input: "Generate 10 multiple-choice or true/false quiz questions for [grade]th-grade [subject], covering topics like [subject topics]. Each question must follow this JSON format:
+  ```json
+  {
+    "topic": "String (e.g., Fractions)",
+    "passage": "For Reading subject comprehension questions, a short passage (3-5 sentences) related to the question (omit for non-comprehension questions like vocabulary or true/false)",
+    "question": "String describing the problem (use proper grammar)",
+    "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"] or ["A) True", "B) False"] for true/false questions,
+    "correctAnswer": "Letter (A, B, C, or D) of the correct option (e.g., 'B')",
+    "explanation": "Detailed step-by-step explanation of the correct answer for a [grade]th-grade student",
+    "hint": "A short hint to guide the student (one sentence)",
+    "explanations": {
+      "correct": "Detailed feedback for a correct answer, affirming the solution, explaining why it's right, and giving a tip",
+      "incorrect": {
+        "A": "Detailed feedback explaining why option A is wrong, identifying the likely mistake, and guiding toward the correct approach (omit if A is correct)",
+        "B": "Detailed feedback explaining why option B is wrong, identifying the likely mistake, and guiding toward the correct approach (omit if B is correct)",
+        "C": "Detailed feedback explaining why option C is wrong, identifying the likely mistake, and guiding toward the correct approach (omit if C is correct, only for multiple-choice questions)",
+        "D": "Detailed feedback explaining why option D is wrong, identifying the likely mistake, and guiding toward the correct approach (omit if D is correct, only for multiple-choice questions)"
+      }
+    }
+  }
+Requirements:
+Generate exactly 10 questions (5 for Coding & AI).
+Questions must suit [grade]th-grade level.
+For the Reading subject, if the topic is "Comprehension" or the question refers to a passage (e.g., "What is the main idea of the passage?"), include a "passage" field with a short passage (3-5 sentences) that the question is based on.
+For non-comprehension questions (e.g., Vocabulary or true/false), omit the "passage" field.
+Options must have either 2 options (true/false) or 4 options (multiple-choice).
+correctAnswer must be a letter (A, B, C, or D), not a numerical value.
+Ensure accuracy and variety in topics.
+Use proper grammar in questions.
+For each incorrect option in explanations.incorrect, provide specific feedback explaining why that option is wrong.
+Return the questions as a JSON array: [{"topic": "...", "passage": "...", "question": "...", ...}, ...]"
+Output Example:
+
 json
 
 Copy
 [
   {
+    "topic": "Comprehension",
+    "passage": "Recycling is an important way to help protect our planet. Every day, we throw away items like plastic bottles, paper, and glass, but these can often be reused or turned into new products. By recycling, we reduce waste in landfills and save natural resources like trees and water.",
+    "question": "What is the main idea of the passage?",
+    "options": ["A) The importance of recycling", "B) How to bake a cake", "C) Benefits of exercise", "D) History of computers"],
+    "correctAnswer": "A",
+    "hint": "Think about the overall message the passage is trying to convey.",
+    "explanation": "The passage discusses how recycling helps protect the planet by reducing waste and saving resources, making the main idea the importance of recycling.",
+    "explanations": {
+      "correct": "Great job! The passage focuses on how recycling helps the environment, which matches option A.",
+      "incorrect": {
+        "B": "How to bake a cake is incorrect because the passage is about recycling, not baking.",
+        "C": "Benefits of exercise is incorrect because the passage does not discuss exercise.",
+        "D": "History of computers is incorrect because the passage is about environmental protection, not technology."
+      }
+    }
+  },
+  {
+    "topic": "Fractions",
     "question": "What is 24/32 simplified?",
     "type": "multiple-choice",
     "options": ["A) 3/4", "B) 4/3", "C) 2/3", "D) 5/8"],
     "correctAnswer": "A",
-    "topic": "Fractions",
     "hint": "Divide numerator and denominator by their GCD.",
     "explanation": "To simplify 24/32, find the greatest common divisor (GCD) of 24 and 32, which is 8. Divide both by 8: 24 ÷ 8 = 3, 32 ÷ 8 = 4, so 24/32 = 3/4.",
     "explanations": {
@@ -332,50 +418,63 @@ Copy
   }
 ]
 Validation:
+
 Ensure 10 questions (5 for Coding & AI), valid options, non-empty fields; retry API call if invalid.
 Validate correctAnswer is a letter (A, B, C, D for multiple choice; A, B for True/False).
 Validate explanations.incorrect contains entries for all incorrect options.
 Error Handling:
+
 Timeout after 30 seconds, show "No quiz available" with "Retry" and "Back to [Subject]" buttons.
 Rate limit fallback: TBD (e.g., static mock questions).
 Response Time:
-Show spinner (#4361ee, centered in card area) with "Loading your quiz questions, please wait..." (text-[16px] text-[#333]) for >2 seconds.
+
+Show custom LoadingAnimation component (components/LoadingAnimation.tsx) with an animated book, flipping page, and pencil, with cycling messages (e.g., "Loading Knowledge", "Preparing Lessons") for >2 seconds.
 Optimized with in-memory caching (app/api/questions/route.ts) and temperature: 0.4 (target: <5 seconds for first request, near-instant for cached requests).
 Suggestions:
 
 GPT-3.5-turbo is sufficient, but GPT-4o-mini could be evaluated for efficiency/cost if budget allows (TBD).
 4.3 Storage
 Preferred Option: Supabase for server-side storage (free tier available, seamless with Next.js via @supabase/supabase-js).
+
 Pros:
+
 Persistent user data (progress, scores, achievements) across devices.
 Scalable for future features (e.g., accounts, leaderboards).
 Free tier supports small-scale apps (500MB database, 1GB file storage).
 Cons:
+
 Setup complexity vs. local storage.
 Requires authentication for user-specific data (TBD: anonymous or email-based).
 Temporary Storage:
+
 During quiz: Store OpenAI questions/answers in memory (useState) in app/subject/[id]/quiz/[grade]/page.tsx for validation and results.
 Post-completion: Save to Supabase (TBD: table schema, e.g., users, quizzes, achievements).
 Fallback: If Supabase setup is deferred, use lib/storage.ts (local storage) to store:
+
 completedQuizzes: Array of { subject, grade, score, timestamp }.
 subjectProgress: { [subject]: { [grade]: { quizScores: number[], mastered: boolean } } }.
 points: Number.
 streaks: { current: number, longest: number, lastQuizDate: string }.
 achievements: Array of { id, name, earned }.
 TBD:
-Finalize Supabase vs. local storage.
+
+Finalize Supabase vs. local storage (no changes made; still pending).
 Schema for quiz results, progress, achievements.
 Storage limits (e.g., cap quiz history to 100 entries).
 4.4 Calculator Tool
 Implementation: TBD (search for a free, pre-built React calculator component like react-simple-calculator or build custom).
+
 Features:
+
 Modal (bg-white, rounded-lg, p-[20px], shadow-[0_4px_8px_rgba(0,0,0,0.1)]).
 Buttons for digits (0-9), operations (+, -, *, /), equals, clear (bg-[#4361ee], text-[white], rounded-[4px]).
 Display for input/result (text-[18px] text-[#333]).
 Availability: Show button for Mathematics, Science; hide for Reading, History, English, Coding & AI, Logic Puzzles (based on subject ID).
 Behavior: Opens on click, closes via "Close" button or outside click, no tracking.
+
 4.5 Achievements System
 Achievements:
+
 Correct Answers in a Row:
 "5 in a Row" (5 correct, resets on incorrect).
 "10 in a Row" (10 correct, resets on incorrect).
@@ -384,8 +483,11 @@ Per subject/grade (e.g., "6th Grade Math Master", 90%+ on 5 quizzes).
 Per grade level (e.g., "6th Grade Scholar", master all subjects).
 Streak: "Streak Breaker" each time the longest streak is surpassed.
 Display: Pop-up on earning (bg-white, rounded-lg, p-[20px], text-[16px] text-[#333], "Achievement Unlocked: X!"), TBD: confetti animation.
+
 Storage: TBD (Supabase table or local storage array).
+
 Additional Ideas:
+
 "Quiz Master": Complete 10 quizzes (any subject/grade).
 "Quick Learner": Finish a quiz in <5 minutes.
 "Hint Avoider": Complete a quiz without using hints.
@@ -400,9 +502,11 @@ Additional Ideas:
 Keyboard Navigation: Tab through radio buttons, "Submit Answer", "Next Question", "Back to [Subject]", Enter to select/submit.
 Touch Targets: Minimum 48x48px for radio buttons, buttons on mobile.
 No Horizontal Scrolling: Wrap explanations, stack elements vertically.
+Loading Animation Accessibility: Custom LoadingAnimation component includes aria-live="polite" for screen reader updates and a prefers-reduced-motion media query to disable animations for users who prefer reduced motion.
 TBD: ARIA labels, screen reader support, high-contrast mode.
 4.7 Mobile Behavior
 Responsive Design:
+
 Radio buttons stack vertically (flex-direction: column, gap: 8px) below 640px.
 Buttons full-width (width: 100%) on mobile.
 Progress bar container stacks vertically (flex-direction: column) below 640px.
@@ -424,6 +528,7 @@ Performance: Page load <2 seconds, quiz generation <5 seconds (or error), cached
 Maintainability: Modular components (QuizCard, ProgressBar), clear file structure, TypeScript for type safety.
 6. Assumptions and TBD Items
 Assumptions:
+
 OpenAI GPT-3.5-turbo is sufficient for question generation; GPT-4o-mini evaluation TBD.
 Supabase free tier meets storage needs for the initial launch.
 Homepage’s subjects array (app/page.tsx) is reused for subject data (name, icon, color).
@@ -432,6 +537,7 @@ Calculator modal is simple (no scientific functions), styled to match the #4361e
 Achievements pop-up closes automatically after 3 seconds (TBD: user interaction).
 Temporary padding adjustment (p-[10px]) to be revisited in Phase 4 for alignment with PRD’s p-[25px] or subject card styles.
 TBD Items:
+
 Finalize Supabase vs. local storage (lib/storage.ts):
 Schema for completedQuizzes, subjectProgress, points, streaks, achievements.
 Authentication (anonymous or email-based).
@@ -455,41 +561,50 @@ Mitigation: Implement retry button, 30-second timeout, TBD fallback questions.
 Risk: Supabase setup delays or free tier limits.
 Mitigation: Fallback to local storage (lib/storage.ts), defer authentication.
 Risk: Inconsistent OpenAI question quality.
-Mitigation: Strict prompt structure, validate JSON output, retry if invalid.
+Mitigation: Strict prompt structure, validate JSON output, retry if invalid. Fixed to ensure passages are generated for Reading comprehension questions (e.g., "What is the main idea of the passage?") and specific incorrect explanations are used (e.g., "The Golgi Apparatus is responsible for packaging and distributing proteins, not energy production" in Science quizzes).
 Risk: Mobile usability issues (small touch targets).
 Mitigation: Ensure 48x48px targets, test on iOS/Android browsers.
 Risk: Progress loss if storage fails.
 Mitigation: Save to Supabase/local storage after each quiz, validate data integrity.
 9. Development Plan
 Phase 1: Grade-Level Selection Page (Static)
+
 Goal: Build app/subject/[id]/page.tsx with static grade options.
+
 Tasks:
+
 Create grade selection page: White card, radio buttons (6th-9th, 6th enabled, others disabled with tooltips), "Start Quiz" button, "Back to Home" button (bg-[#4361ee], text-[white], top-right).
 Use static subject data from app/page.tsx (subjects array).
-Style to match index.html (#F9FAFB, rounded-[10px], p-[10px] temporary).
-Deliverables: Static page.tsx, reusable components (RadioButtonGroup).
+Style to match index.html (#F9FAFB, rounded-[10px], p-[10px] temporary). Deliverables: Static page.tsx, reusable components (RadioButtonGroup).
 Status: Completed.
 Phase 2: Quiz Page (Static)
+
 Goal: Build app/subject/[id]/quiz/[grade]/page.tsx with static questions.
+
 Tasks:
+
 Implement quiz page: Subject title, topic sub-header, progress bar, question card (radio buttons, "Submit Answer"), hint/calculator, feedback area.
 Use mock data from lib/questions/mathematics.ts (10 questions, 4 options or true/false, hints, explanations).
 Add "Back to [Subject]" button (bg-[#4361ee], text-[white], top-right), loading spinner, error state.
-Style to match index.html.
-Deliverables: page.tsx, QuizCard.tsx, ProgressBar.tsx, CalculatorModal.tsx.
+Style to match index.html. Deliverables: page.tsx, QuizCard.tsx, ProgressBar.tsx, CalculatorModal.tsx.
 Status: Completed.
 Phase 3: Results Page (Static)
+
 Goal: Build app/subject/[id]/results/page.tsx with static results.
+
 Tasks:
+
 Create results page: Score display (e.g., "8/10 (80%)"), accordion with static questions/answers, navigation buttons ("Return to Home", "Take Another Quiz", "Retake Quiz").
 Use mock data (e.g., 10 Mathematics questions, 80% score).
 Add "Back to Home" button (bg-[#4361ee], text-[white], top-right).
-Style to match index.html.
-Deliverables: page.tsx, Accordion.tsx.
+Style to match index.html. Deliverables: page.tsx, Accordion.tsx.
 Status: Completed.
 Phase 4: OpenAI API Integration and Storage
+
 Goal: Replace static questions with OpenAI-generated content, persist progress.
+
 Tasks:
+
 Create app/api/questions/route.ts with API route for OpenAI question generation, including in-memory caching and validation.
 Integrate API call on "Start Quiz" click, show spinner, handle errors.
 Validate JSON response, store questions in memory for quiz and results.
@@ -497,15 +612,19 @@ Setup Supabase (or extend lib/storage.ts for local storage).
 Save quiz results (completedQuizzes, subjectProgress, points, streaks, achievements).
 Update app/page.tsx stats order, sync with storage.
 Revisit padding (p-[10px] vs. p-[25px] or subject card styles).
-Deliverables: app/api/questions/route.ts, Supabase client or updated lib/storage.ts, modified page.tsx files.
-Status: OpenAI integration completed (questions generated, cached, validated). Storage setup TBD.
+Fixed: Ensure specific incorrect explanations are used for Science quizzes (e.g., "The Golgi Apparatus is responsible for packaging and distributing proteins, not energy production").
+Fixed: Added passage generation for Reading comprehension questions (e.g., "Recycling is an important way to help protect our planet...").
+Added: Custom LoadingAnimation component (components/LoadingAnimation.tsx) to replace the default spinner, showing an animated book, flipping page, and pencil with cycling messages (e.g., "Loading Knowledge", "Preparing Lessons"). Deliverables: app/api/questions/route.ts, Supabase client or updated lib/storage.ts, modified page.tsx files, components/LoadingAnimation.tsx.
+Status: OpenAI integration completed (questions generated, cached, validated; passages added for Reading comprehension; specific incorrect explanations fixed for Science quizzes; custom loading animation implemented). Storage setup TBD.
 Phase 5: Achievements and Polish
+
 Goal: Implement achievements, refine UX.
+
 Tasks:
+
 Add achievement logic (5/10 correct, mastery, streak breaker), pop-up on earning.
 Polish accessibility (keyboard navigation, touch targets).
-Test mobile responsiveness, performance.
-Deliverables: AchievementPopUp.tsx, final bug fixes.
+Test mobile responsiveness, performance. Deliverables: AchievementPopUp.tsx, final bug fixes.
 Status: Not started.
 Timeline: TBD (estimate 2-3 weeks for Phases 1-5, pending Supabase setup and OpenAI key).
 
@@ -515,11 +634,27 @@ Adaptive Quizzes: No adaptive functionality now; explore options later.
 Analytics: Not planned currently.
 Multi-Quiz Support: To be determined later.
 End of PRD
-</DOCUMENT>
+
 Explanation of Consolidation
 Structure: The document follows the PRD format for consistency, with sections reorganized to avoid redundancy while incorporating all details from the three files.
+
 Updates Integrated: All updates from the previous response (e.g., OpenAI integration, detailed explanations, temperature: 0.4, in-memory caching) are reflected.
+
 Clarifications Added: Details from Additional Clarifying Questions.txt (e.g., prompt structure examples, accessibility requirements) are integrated into relevant sections (e.g., OpenAI Integration, Accessibility).
+
 Redundancy Removed: Overlapping sections (e.g., quiz page descriptions) are merged, ensuring a single, cohesive narrative.
+
 TBD Items: Undecided aspects (e.g., Supabase schema, calculator implementation) are clearly labeled as TBD.
+
 Consistency: Design and behavior details (e.g., button styles, loading states) are unified across sections.
+
+Changelog (Added in Version 3.1)
+Version 3.1 Updates (April 22, 2025):
+Section 2.4 (Quiz Page): Added passage display for Reading comprehension questions, fixed specific incorrect explanations for Science quizzes, and replaced the default loading spinner with a custom LoadingAnimation component.
+Section 3.8 (Visual and Behavioral Feedback): Updated to include passage rendering details and confirm the fix for specific incorrect explanations.
+Section 4.1 (Architecture): Added components/LoadingAnimation.tsx to the file structure.
+Section 4.2 (OpenAI Integration): Updated the prompt to include passage generation for Reading comprehension questions and updated the loading state description to reference the LoadingAnimation component.
+Section 4.3 (Storage): Noted that Supabase/local storage setup is still TBD, as no changes were made.
+Section 4.6 (Accessibility): Added accessibility details for the LoadingAnimation component (aria-live="polite", prefers-reduced-motion).
+Section 8 (Risks and Mitigations): Updated the risk about inconsistent OpenAI question quality to confirm fixes for passages and specific incorrect explanations.
+Section 9 (Development Plan): Updated Phase 4 to confirm completion of OpenAI integration tasks (passages, specific incorrect explanations) and the addition of the LoadingAnimation component.

@@ -9,6 +9,7 @@ import HintModal from "@/components/HintModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useState, useEffect, useRef } from "react";
 import { subjects } from "@/lib/subjects";
+import LoadingAnimation from "@/components/LoadingAnimation";
 
 // Update type names to match route.ts
 type QuizQuestion = {
@@ -260,10 +261,7 @@ export default function QuizPage() {
         </div>
         <div className="max-w-[800px] mx-auto p-[10px]">
           <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
-            <p className="text-[16px] text-[#555] mb-[15px]">
-              Loading your quiz questions, please wait...
-            </p>
-            <div className="w-[100px] h-[100px] border-4 border-[#4361ee] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <LoadingAnimation />
           </div>
         </div>
       </div>
