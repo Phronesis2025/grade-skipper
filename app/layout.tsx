@@ -34,6 +34,10 @@ export default function RootLayout({
           name="description"
           content="Educational platform to help students advance in their studies"
         />
+        {/* Favicon configuration */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
         {/* Force CSS for sticky navbar */}
         <style
           dangerouslySetInnerHTML={{

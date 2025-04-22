@@ -7,6 +7,9 @@ grade-skipper/
 ├── app/
 │   ├── analytics/
 │   │   └── page.tsx
+│   ├── api/
+│   │   └── questions/
+│   │       └── route.ts
 │   ├── reading-log/
 │   │   └── page.tsx
 │   ├── subject/
@@ -19,14 +22,22 @@ grade-skipper/
 │   │           │   └── page.tsx
 │   │           └── challenge/
 │   │               └── page.tsx
-│   ├── favicon.ico
+│   ├── favicon.svg
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
 ├── components/
+│   ├── icons/
 │   ├── layout/
 │   │   └── Navbar.tsx
-│   └── CustomLink.tsx
+│   ├── ui/
+│   ├── Accordion.tsx
+│   ├── CalculatorModal.tsx
+│   ├── ConfirmationModal.tsx
+│   ├── CustomLink.tsx
+│   ├── HintModal.tsx
+│   ├── ProgressBar.tsx
+│   └── QuizCard.tsx
 ├── lib/
 │   ├── questions/
 │   │   ├── coding-ai.ts
@@ -37,6 +48,7 @@ grade-skipper/
 │   │   ├── reading.ts
 │   │   └── science.ts
 │   ├── storage.ts
+│   ├── subjects.ts
 │   ├── types.ts
 │   └── utils.ts
 ├── public/
@@ -50,6 +62,7 @@ grade-skipper/
 │   │   └── science.svg
 │   ├── amelia.png
 │   ├── file.svg
+│   ├── favicon.svg
 │   ├── globe.svg
 │   ├── next.svg
 │   ├── placeholder.png
@@ -65,33 +78,46 @@ grade-skipper/
 
 ## Configuration Files
 
-- next.config.js
+- next.config.ts
 - package.json
 - tailwind.config.ts
 - tsconfig.json
+- postcss.config.mjs
+- eslint.config.mjs
+- components.json
 - .env.local
 
 ## Key Project Updates (April 2025)
 
-1. Added new routes:
+1. Added new components:
 
-   - `/subject/[id]/page.tsx` - Grade selection page
-   - `/subject/[id]/quiz/[grade]/page.tsx` - Quiz page
-   - `/subject/[id]/results/page.tsx` - Results page
+   - `Accordion.tsx` - Collapsible content component with answer status visualization
+   - `CalculatorModal.tsx` - Modal for calculator functionality
+   - `ConfirmationModal.tsx` - Modal for user confirmations
+   - `HintModal.tsx` - Modal for displaying hints
+   - `ProgressBar.tsx` - Progress tracking component
+   - `QuizCard.tsx` - Card component for quiz display
 
-2. Added new components:
+2. Enhanced core functionality:
 
-   - `CustomLink.tsx` - Custom link component with scroll-to-top functionality
+   - Added API routes for question generation and management
+   - Improved subject management with `subjects.ts`
+   - Enhanced storage capabilities with `storage.ts`
+   - Added calculator and hint features for quiz assistance
+   - Implemented question validation and correction logic
 
-3. Completed core user journey:
+3. UI/UX Improvements:
 
-   - Subject selection (homepage)
-   - Grade level selection
-   - Quiz taking
-   - Results viewing
+   - Consistent modal components for various interactions
+   - Progress tracking for quizzes
+   - Enhanced quiz card design
+   - Improved navigation and layout components
+   - Added visual feedback for quiz answers (green/red shading)
+   - Updated favicon to SVG format
 
-4. All pages now have consistent styling:
-   - White card UI with subtle shadows
-   - Responsive design with no scrollbars on desktop
-   - Consistent button styling with #4361ee color
-   - Proper navigation between pages
+4. Development Tools:
+   - Added ESLint configuration
+   - Enhanced TypeScript configuration
+   - Improved PostCSS setup
+   - Added component configuration for UI library integration
+   - Implemented proper error handling and logging

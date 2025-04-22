@@ -1,125 +1,188 @@
-GradeSkipper Project Summary - Updated April 21, 2025
+# GradeSkipper Project Summary - Updated April 22, 2025
 Project Overview
-The GradeSkipper project is a Next.js-based educational platform designed to help students advance in their studies through interactive quizzes and progress tracking. The homepage displays a user's learning journey, including stats (e.g., Questions Answered), subject progress (e.g., Mathematics), and recommended next steps. The application uses Tailwind CSS for styling and Lucide Icons for visual elements, with a clean, responsive layout. The project uses TypeScript for type safety and includes a basic data storage system for user progress.
+The GradeSkipper project is a Next.js-based educational platform designed to help students advance their studies through interactive quizzes and progress tracking. The app allows users to select a subject (e.g., Mathematics, Science), choose a grade level (6th to 9th), take a quiz with OpenAI-generated questions, review results, and track their progress on the homepage. Key features include:
+
+Homepage: Displays learning journey stats (Total Quiz Score %, Quizzes Completed, Current/Longest Streak, Achievements), subject progress, and recommended next steps.
+Grade-Level Selection: Users choose a grade level for a subject before starting a quiz.
+Quiz Page: Presents 10 questions (5 for Coding & AI) with immediate feedback, hints, and a calculator tool for relevant subjects.
+Results Page: Shows quiz scores, question reviews via an accordion, and navigation options.
+Progress Tracking: Stats, achievements, and subject progress are stored (TBD: Supabase vs. local storage).
+Tech Stack: Next.js 13+ (App Router), React, TypeScript, Tailwind CSS for styling, Lucide Icons for visuals.
+The app aims for a clean, responsive layout with accessibility features like keyboard navigation and large touch targets.
 
 Project Structure
 The project follows a standard Next.js App Router structure:
 
-app/page.tsx: The main homepage component, displaying learning journey, subjects, and recommended next steps.
-app/layout.tsx: The root layout with a sticky Navbar component that scrolls to the top on navigation.
+app/page.tsx: Main homepage component, displaying learning journey, subjects, and recommended next steps.
+app/layout.tsx: Root layout with a sticky Navbar component that scrolls to the top on navigation.
 app/subject/[id]/page.tsx: Grade-level selection page for a specific subject, allowing users to select a grade and start a quiz.
-app/subject/[id]/quiz/[grade]/page.tsx: Quiz page for a specific subject and grade level, displaying a question with answer options and navigation.
-app/subject/[id]/results/page.tsx: Results page displaying quiz completion stats.
+app/subject/[id]/quiz/[grade]/page.tsx: Quiz page for a specific subject and grade level, displaying questions with answer options, feedback, and navigation.
+app/subject/[id]/results/page.tsx: Results page displaying quiz completion stats and question review.
+app/api/questions/route.ts: API route for generating quiz questions via OpenAI, with in-memory caching.
 components/layout/Navbar.tsx: Sticky navigation bar showing the app logo ("GradeSkipper" with 🎓 emoji, #4361ee) and user profile ("Welcome, Amelia!" with amelia.png avatar).
 components/CustomLink.tsx: Custom link component for consistent navigation with scroll-to-top behavior on route changes.
 app/globals.css: Global styles with Tailwind CSS directives and custom styling.
-lib/questions/: Contains question data files for each subject (e.g., mathematics.ts, science.ts), to be used for dynamic data in future phases.
-lib/storage.ts: Functions for managing user progress data.
+lib/questions/: Contains question data files for each subject (e.g., mathematics.ts, science.ts), used as a fallback for OpenAI failures.
+lib/storage.ts: Functions for managing user progress data (TBD: Supabase integration).
 lib/types.ts: TypeScript interfaces for data structures.
 public/: Contains static assets including Amelia's profile picture (amelia.png) and subject icons.
+Comprehensive PRD Reference
+For a detailed specification of the project, refer to the following document, which consolidates all requirements, user flows, and technical details:
+
+GradeSkipper Comprehensive PRD.txt: Includes the full user journey, functional requirements, technical specifications, OpenAI integration details, storage considerations, accessibility, and development plan. Key sections include:
+User Journey Overview (Sections 2.1–2.6): Homepage, grade-level selection, quiz, results, and navigation.
+Functional Requirements (Section 3): Detailed features for each page, data handling, and user interactions.
+Technical Specifications (Section 4): Architecture, OpenAI integration, storage, calculator tool, achievements, accessibility, and performance.
+Development Plan (Section 9): Phases, tasks, deliverables, and statuses.
+This PRD is the central reference for all project details and should be reviewed for in-depth understanding.
+
 Implemented Features and UI Improvements
-1. Homepage Layout Enhancements (Phase 0 - Prior Work)
+Homepage Layout Enhancements (Phase 0 - Prior Work)
 Learning Journey Section:
-White container with rounded corners (16px radius) and subtle shadow.
+White container with rounded corners (16px radius) and subtle shadow (shadow-[0_1px_2px_rgba(0,0,0,0.05)]).
 Centered icons in colored background squares using flexbox.
 Standardized stat card icons with consistent sizing and positioning.
 Fixed text alignment and spacing for better readability.
 Subject Cards:
-Consistent card dimensions with fixed height and width.
-Added 15px gap between cards.
-Used inline styles for guaranteed white backgrounds.
-Improved responsive behavior with grid layouts.
+Consistent card dimensions with fixed height (h-[180px]) and width.
+15px gap between cards (gap-[15px]).
+Inline styles for guaranteed white backgrounds.
+Responsive grid layouts (grid-cols-3, max-[768px]:grid-cols-2, max-[640px]:grid-cols-1).
 Recommended Next Steps:
 Horizontal card layout with left-aligned icons.
-Increased padding (20px) for better content spacing.
-Matched styling with other sections for design consistency.
+Increased padding (20px) for better spacing.
+Matched styling with other sections for consistency.
 Fully responsive with proper spacing.
 General UI Improvements:
-Consistent shadow treatment (shadow-[0_1px_2px_rgba(0,0,0,0.05)]).
-Consistent border radius styles.
+Consistent shadow treatment and border radius styles.
 Consistent white backgrounds using inline styles.
-Full-width sticky footer (removed in later pages for consistency).
-2. Profile Integration (Phase 0 - Prior Work)
+Removed full-width sticky footer in later pages for consistency.
+Profile Integration (Phase 0 - Prior Work)
 Updated Navbar to use Amelia's actual image (amelia.png) instead of a placeholder.
-Removed unnecessary background color from avatar.
+Removed unnecessary background color from the avatar.
 Added appropriate alt text for accessibility.
-3. Grade-Level Selection Page (Phase 1)
+Grade-Level Selection Page (Phase 1)
 Route: app/subject/[id]/page.tsx (e.g., /subject/science).
 Features:
 Displays the subject title (e.g., “Science”) based on the id param, using the subjects array from app/page.tsx.
 Shows a subtitle: “Please select a grade level to start the quiz”.
-Grade selection radio buttons (6th-9th grades), with 7th-9th disabled and showing tooltips (e.g., “Master 6th grade to unlock”).
-“Start Quiz” button links to /subject/[id]/quiz/[grade] (e.g., /subject/science/quiz/6).
+Grade selection radio buttons (6th–9th grades), with 7th–9th disabled and showing tooltips (e.g., “Master 6th grade to unlock”).
+“Start Quiz” button links to /subject/[id]/quiz/[grade] (e.g., /subject/science/quiz/6) and triggers an OpenAI API call to generate questions.
 “Back to Home” button at the top-right, styled as bg-[#4361ee] text-white px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold, linking to /.
 UI Improvements:
 Consistent white card styling with shadow.
 Adjusted padding/margins to eliminate scrollbar on desktop (total height ~444px, fits within 600px viewport).
 Responsive design: Buttons stack on mobile, padding adjusts (max-sm:p-[15px]).
 No footer, matching updated design consistency.
-4. Quiz Page (Phase 2)
+Quiz Page (Phase 2 & Phase 4)
 Route: app/subject/[id]/quiz/[grade]/page.tsx (e.g., /subject/science/quiz/6).
 Features:
-Displays the subject title (e.g., “Science”) and progress indicator (“Question 8 of 10”, 60% progress bar, static data).
-Question card with a static question (“What is the result of simplifying the fraction 24/32?”) and four answer options as radio buttons (3/4, 4/3, 2/3, 5/8).
-State management for answer selection (selectedAnswer).
-“Submit Answer” button links to /subject/[id]/results.
+Displays the subject title (e.g., “Science”), grade level (“Grade 6”), and progress bar showing progress (e.g., 50% at question 6/10).
+Question card with OpenAI-generated questions (e.g., “What is the result of simplifying the fraction 24/32?”) and four answer options as radio buttons (e.g., 3/4, 4/3, 2/3, 5/8) or two for True/False.
+State management for answer selection (selectedAnswer), feedback (correct/incorrect), and question navigation.
+“Submit Answer” button validates the answer and shows feedback: green check for correct, red X for incorrect with green check on the correct answer, and a detailed explanation specific to the user’s selection for incorrect answers.
+“Next Question” button replaces “Submit Answer” after feedback, navigates to the next question or results page after the last question.
 “Back to [Subject]” button at the top-right, styled like the “Back to Home” button, linking to /subject/[id].
-Tools section with “Hint” and “Calculator” (non-functional, with SVGs).
+Tools section with “Hint” (shows OpenAI-generated hint) and “Calculator” (non-functional modal, hidden for non-relevant subjects like Reading, History).
+Loading state: Spinner with “Loading your quiz questions, please wait...” during OpenAI call.
+Error state: “No quiz available” with “Retry” and “Back to [Subject]” buttons if OpenAI fails.
 UI Improvements:
 Adjusted padding/margins to eliminate scrollbar on desktop.
 Responsive design: Progress bar and buttons stack on mobile (max-sm:flex-col).
 Removed footer for consistency with the grade selector page.
 Reduced padding between navbar and “Back to [Subject]” button (pt-[5px]).
-5. Results Page (Phase 3) [UPDATED]
+Container width increased to max-w-[800px] to accommodate wider content like explanations.
+Results Page (Phase 3)
 Route: app/subject/[id]/results/page.tsx (e.g., /subject/science/results).
 Features:
-Displays the subject title (e.g., “Science”), “Quiz Completed!”, static score (“Score: 8/10 Correct”), and percentage (“80%”).
+Displays the subject title (e.g., “Science”), static score (“Score: 8/10 Correct”), and percentage (“80%”).
 Accordion component for question review, showing each question, the user’s answer, the correct answer, and an explanation (if incorrect). Accordion headers are shaded based on correctness: #e6f7e9 (light green) for correct, #ffebee (light red) for incorrect.
 “Retake Quiz” button links to /subject/[id]/quiz/[grade] (hardcoded as grade “6” for now), shown only if the score is less than 100%, restarts the same quiz and overwrites the score if higher.
 “Back to [Subject]” button inside the card, linking to /subject/[id].
 “Back to Home” button at the top-right, styled like previous back buttons, linking to / (homepage).
 UI Improvements:
-Background updated to #F0F1F2 (previously #F9FAFB) for a distinct look compared to other pages.
-Container width increased to max-w-[800px] (previously max-w-[400px]) for a wider layout.
+Background updated to #F0F1F2 for a distinct look compared to other pages.
+Container width increased to max-w-[800px] for a wider layout.
 Consistent white card styling with shadow.
 Responsive design: Buttons stack on mobile (max-sm:flex-col).
 No footer, matching the grade selector and quiz pages.
 No scrollbar on desktop (content fits within viewport).
-6. Navigation and Responsiveness
+OpenAI Integration (Phase 4)
+Features:
+API route (app/api/questions/route.ts) generates 10 questions (5 for Coding & AI) using OpenAI GPT-3.5-turbo (temperature: 0.4 for faster generation).
+Questions include topic, question text, options, correct answer (as a letter), hint, and detailed explanations (correct and incorrect, with incorrect explanations specific to each option).
+In-memory caching implemented to reduce generation time for subsequent requests (first request ~13 seconds, needs optimization; cached requests near-instant).
+Validation ensures correct answer format and explanation structure; falls back to lib/questions/mathematics.ts if OpenAI fails.
+Loading state with spinner and “Loading your quiz questions, please wait...” message during API call.
+Error handling: Timeout after 30 seconds, shows “No quiz available” with “Retry” and “Back to [Subject]” buttons.
+Navigation and Responsiveness
 Navbar: Sticky across all pages, scrolls to the top on route changes (implemented via app/layout.tsx).
 CustomLink: Ensures scroll-to-top behavior on all navigation.
 Responsive Design:
 All pages adjust padding, stack elements (e.g., buttons, progress bars) on mobile (max-sm: breakpoints).
 Consistent spacing and centering across viewport widths.
-7. Code Quality Improvements
-Used inline styles where needed to overcome CSS specificity issues.
-Standardized spacing and sizing values across components.
-Implemented proper centering techniques for icons and content.
-Maintained consistent styling patterns (white_cards, #F9FAFB background, #4361ee buttons).
-Used Tailwind’s bracket notation for consistent color application (e.g., text-[white]).
-Improved component structure with appropriate nesting and logical grouping.
-Current State [UPDATED]
-The GradeSkipper app now has a fully functional user journey: users can select a subject and grade level, take a quiz, and view their results with the ability to review each question via an accordion component. The UI is mostly consistent across all pages, with white cards, subtle shadows, and a cohesive design language, though the results page uses a distinct #F0F1F2 background and wider max-w-[800px] layout compared to the #F9FAFB background and max-w-[400px] layout of other pages. The navbar is sticky, navigation scrolls to the top on route changes, and all pages are responsive with no scrollbars on desktop. Static data is used for quiz questions and results (e.g., score of 8/10, 80%), which will be replaced with dynamic data in the next phase. The app is ready to move forward with dynamic data integration and additional functionality.
+Accessibility:
+Keyboard navigation: Tab through radio buttons, buttons, Enter to select/submit.
+Touch targets: Minimum 48x48px.
+No horizontal scrolling: Elements stack vertically.
+Current State
+The GradeSkipper app has a fully functional user journey:
 
-Next Steps [UPDATED]
-Implement Dynamic Data (Phase 4):
-Replace static quiz questions with data from lib/questions/ (e.g., mathematics.ts, science.ts).
-Replace static quiz results (8/10, 80%) with actual user performance data.
-Implement functionality to track and store quiz responses in lib/storage.ts.
-Add functionality to update subject completion percentages on the homepage.
-Add a confirmation modal for the "Back to Home" button on the results page ("Are you sure?" with "Yes"/"Cancel" options).
-Subject Detail Pages:
-Enhance individual subject pages with additional details (e.g., progress tracking, topic selection).
-Ensure consistent styling across all pages.
-Quiz Functionality:
-Enhance the quiz page with more question types (e.g., multiple choice, true/false).
-Implement scoring and progress tracking (e.g., track correct answers, update progress bar).
-Add difficulty levels based on grade selection.
-User Authentication:
-Add user login/profile functionality.
-Store progress data per user in lib/storage.ts.
-Analytics Dashboard:
-Develop the analytics page (app/analytics/page.tsx) to visualize learning progress.
-Create charts/graphs to display performance metrics.
-Conclusion [UPDATED]
-The GradeSkipper project has made significant progress with the implementation of the grade-level selection, quiz, and results pages, completing the core user journey. The results page now includes an accordion for detailed question review, with updated styling (#F0F1F2 background, wider max-w-[800px] layout) and refined navigation buttons ("Retake Quiz" and "Back to [Subject]"). The UI is polished and mostly consistent, with responsive design and no scrollbars on desktop. The app is now ready for dynamic data integration in Phase 4, followed by enhancements to quiz functionality, user authentication, and analytics. The current implementation provides a clean, modern interface that engages students as they learn and advance through various subjects.
+Users can select a subject and grade level, take a quiz with OpenAI-generated questions, and view their results with the ability to review each question via an accordion component.
+The quiz page prevents duplicate API calls using useRef, and questions are cached in memory for faster subsequent loads.
+Explanations for incorrect answers are now specific to the user’s selected option, improving feedback quality.
+Challenges:
+
+The initial OpenAI question generation takes ~13 seconds, which needs optimization (target: <5 seconds for first request, near-instant for cached requests).
+Storage setup is pending (TBD: Supabase vs. local storage).
+Calculator tool implementation is TBD (search for a free React component or build custom).
+Achievements system and further accessibility enhancements (e.g., ARIA labels) are not yet implemented.
+Next Steps
+To continue development, we need to focus on the following tasks:
+
+Optimize OpenAI API Call:
+Reduce the initial question generation time from ~13 seconds to under 5 seconds.
+Explore options like refining the prompt, adjusting API parameters, or implementing better caching strategies.
+Implement Grade-Level Selection Page with Dynamic Data:
+Replace static grade selection with dynamic logic based on user progress (e.g., unlocking 7th grade after mastering 6th).
+Integrate with storage to track mastery (90%+ on 5 quizzes per subject).
+Implement Results Page with Dynamic Data:
+Replace static score data (“Score: 8/10 Correct”, “80%”) with dynamic calculations based on quiz answers.
+Ensure question review accordion reflects actual user answers and correct answers from the quiz session.
+Set Up Storage:
+Finalize Supabase vs. local storage decision.
+Implement storage for quiz results, progress, points, streaks, and achievements.
+Define schema for Supabase (if chosen).
+Implement Calculator Tool:
+Search for a free React calculator component (e.g., react-simple-calculator) or build a custom modal with basic operations (+, -, *, /).
+Achievements System (Phase 5):
+Implement logic for achievements (e.g., 5/10 correct in a row, mastery, streak breaker).
+Add a pop-up notification for earned achievements.
+Polish and Test:
+Enhance accessibility (e.g., ARIA labels, screen reader support if prioritized).
+Test mobile responsiveness and performance across browsers (Chrome, Firefox, Safari, Edge; iOS/Android).
+Assistance Needed
+I need Grok’s help to complete this project by focusing on the next steps outlined above. Please start by assisting with the following:
+
+Optimizing OpenAI API Call:
+Analyze the current implementation in app/api/questions/route.ts and suggest improvements to reduce the initial question generation time to under 5 seconds.
+Grade-Level Selection Page:
+Update app/subject/[id]/page.tsx to integrate dynamic grade unlocking logic based on user progress.
+Provide a sample implementation assuming temporary local storage (lib/storage.ts).
+Results Page:
+Update app/subject/[id]/results/page.tsx to dynamically calculate and display the quiz score and percentage.
+Ensure the accordion reflects actual quiz data (user answers, correct answers, explanations).
+Please refer to the GradeSkipper Comprehensive PRD.txt for detailed specifications, including UI styles, behavior, and technical requirements. Let me know if you need additional details to proceed!
+
+</DOCUMENT>
+Explanation of Updates
+Purpose: The document is streamlined for a new conversation, providing Grok with a clear understanding of the project’s context, current state, and immediate needs.
+Key Information Included:
+Project Overview: Summarizes the app’s purpose, features, and tech stack.
+Structure: Lists all relevant files and their roles, ensuring Grok knows the codebase layout.
+PRD Reference: Points to the comprehensive PRD for detailed specs, avoiding redundancy while ensuring Grok has access to all requirements.
+Implemented Features: Summarizes completed work to establish context.
+Current State: Highlights achievements and challenges (e.g., OpenAI call time, TBD items).
+Next Steps: Clearly outlines the tasks to focus on, prioritized for immediate progress.
+Assistance Needed: Specifies the initial tasks for Grok to tackle, ensuring a focused start.
+Tone and Clarity: The document is concise yet comprehensive, written in a professional tone to facilitate effective collaboration with Grok.

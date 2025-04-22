@@ -7,54 +7,34 @@ import ProgressBar from "@/components/ProgressBar";
 import CalculatorModal from "@/components/CalculatorModal";
 import HintModal from "@/components/HintModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useState, useEffect } from "react";
-import {
-  mathematicsQuestions,
-  MathQuestion,
-} from "@/lib/questions/mathematics";
+import { useState, useEffect, useRef } from "react";
 import { subjects } from "@/lib/subjects";
 
-// Function to select first 10 questions for SSR
-function getDefaultQuestions(): MathQuestion[] {
-  const allQuestions = Object.values(mathematicsQuestions).flat();
-  return allQuestions.length > 0
-    ? allQuestions.slice(0, 10)
-    : [
-        {
-          question: "Fallback: What is 1 + 1?",
-          options: ["2", "3", "4", "5"],
-          correctAnswer: "2",
-          explanation: "1 + 1 equals 2.",
-          hint: "Basic addition.",
-          topic: "Fallback",
-        },
-      ];
-}
+// Update type names to match route.ts
+type QuizQuestion = {
+  topic: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  hint?: string;
+  passage?: string; // Add passage field for comprehension questions
+};
 
-// Function to select 10 random questions for client-side
-function getRandomQuestions(): MathQuestion[] {
-  const allQuestions = Object.values(mathematicsQuestions).flat();
-  if (allQuestions.length === 0) {
-    return [
-      {
-        question: "Fallback: What is 1 + 1?",
-        options: ["2", "3", "4", "5"],
-        correctAnswer: "2",
-        explanation: "1 + 1 equals 2.",
-        hint: "Basic addition.",
-        topic: "Fallback",
-      },
-    ];
-  }
-  const shuffled = allQuestions.sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 10);
-}
+// Extend QuizQuestion to include userAnswer and new explanations structure
+type ExtendedQuizQuestion = QuizQuestion & {
+  userAnswer: string | null;
+  explanations: {
+    correct: string;
+    incorrect: { [key: string]: string };
+  };
+};
 
 export default function QuizPage() {
   // Get the route parameters
   const params = useParams();
   const subjectId = params.id as string;
-  const grade = params.grade as string;
+  const grade = parseInt(params.grade as string, 10);
 
   // State for quiz
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -65,38 +45,72 @@ export default function QuizPage() {
     correctAnswer: string;
   } | null>(null);
   const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [questions, setQuestions] = useState<MathQuestion[]>(() =>
-    subjectId === "mathematics"
-      ? getDefaultQuestions()
-      : [
-          {
-            question: "What is the result of simplifying the fraction 24/32?",
-            options: ["3/4", "4/3", "2/3", "5/8"],
-            correctAnswer: "3/4",
-            explanation: "24/32 ÷ 8/8 = 3/4.",
-            hint: "Divide numerator and denominator by their greatest common factor.",
-            topic: "Fractions",
-          },
-        ]
-  );
+  const [questions, setQuestions] = useState<ExtendedQuizQuestion[]>([]);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isHintOpen, setIsHintOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Ref to prevent duplicate fetches
+  const hasFetched = useRef(false);
+
+  // Fetch questions from API
+  useEffect(() => {
+    if (hasFetched.current) return; // Prevent duplicate fetches
+    hasFetched.current = true;
+
+    const loadQuestions = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // Fetch questions with subject-specific count and subject
+        const count = subjectId === "coding-ai" ? 5 : 10;
+        const response = await fetch(
+          `/api/questions?grade=${grade}&count=${count}&subject=${subjectId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to load questions");
+        }
+        const data = await response.json();
+        console.log("Raw API response:", data); // Debug: Log raw API response to verify explanations.incorrect
+        // Initialize userAnswer as null for each question
+        const questionsWithUserAnswer: ExtendedQuizQuestion[] = data.map(
+          (q: QuizQuestion) => ({
+            ...q,
+            userAnswer: null,
+            explanations: {
+              correct:
+                q.explanations?.correct ||
+                q.explanation ||
+                "Correct! Well done!",
+              incorrect: q.explanations?.incorrect || {
+                A: "Review the explanation and try again",
+                B: "Review the explanation and try again",
+                C: "Review the explanation and try again",
+                D: "Review the explanation and try again",
+              },
+            },
+          })
+        ); // Preserve explanations.incorrect from API response, apply defaults only if missing
+        setQuestions(questionsWithUserAnswer);
+        setCurrentQuestionIndex(0);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load questions"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadQuestions();
+  }, [grade, subjectId]);
 
   // Log state changes
   useEffect(() => {
     console.log("isCalculatorOpen:", isCalculatorOpen);
     console.log("isHintOpen:", isHintOpen);
   }, [isCalculatorOpen, isHintOpen]);
-
-  // Randomize questions client-side after hydration
-  useEffect(() => {
-    if (subjectId === "mathematics") {
-      const newQuestions = getRandomQuestions();
-      console.log("Randomized Questions:", newQuestions);
-      setQuestions(newQuestions);
-    }
-  }, [subjectId]);
 
   // Get the current question with logging
   const currentQuestion = questions[currentQuestionIndex] || questions[0];
@@ -106,12 +120,70 @@ export default function QuizPage() {
 
   // Handle answer submission
   const handleSubmit = () => {
-    if (selectedAnswer) {
-      const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    if (selectedAnswer && currentQuestion) {
+      // Extract the letter (e.g., "B") from selectedAnswer (e.g., "B) 4")
+      const selectedLetter = selectedAnswer.split(")")[0].trim();
+      // Extract the value (e.g., "4") from selectedAnswer (e.g., "B) 4")
+      const selectedValue = selectedAnswer.split(")")[1].trim();
+      // Validate correctAnswer format
+      const isLetterFormat = ["A", "B", "C", "D"].includes(
+        currentQuestion.correctAnswer
+      );
+
+      let isCorrect: boolean;
+      if (isLetterFormat) {
+        // Compare letters if correctAnswer is in letter format (e.g., "B")
+        isCorrect = selectedLetter === currentQuestion.correctAnswer;
+      } else {
+        // Fallback: Compare values if correctAnswer is not a letter (e.g., "4")
+        const correctOption = currentQuestion.options.find((opt) =>
+          opt.startsWith(`${currentQuestion.correctAnswer})`)
+        );
+        const correctValue = correctOption
+          ? correctOption.split(")")[1].trim()
+          : null;
+        isCorrect = correctValue ? selectedValue === correctValue : false;
+        console.warn(
+          `Invalid correctAnswer format for question: "${currentQuestion.question}". Expected letter (A, B, C, D), got "${currentQuestion.correctAnswer}". Using fallback comparison.`
+        );
+      }
+
+      // Update the question with the user's answer
+      setQuestions((prevQuestions) => {
+        const updatedQuestions = [...prevQuestions];
+        updatedQuestions[currentQuestionIndex] = {
+          ...updatedQuestions[currentQuestionIndex],
+          userAnswer: selectedAnswer,
+        };
+        return updatedQuestions;
+      });
+
+      // Debug: Log selectedLetter and incorrect explanations
+      console.log(
+        "handleSubmit: selectedLetter:",
+        selectedLetter,
+        "explanations.incorrect:",
+        currentQuestion.explanations.incorrect
+      );
+
+      // Select the appropriate incorrect explanation based on the user's selection
+      const explanation = isCorrect
+        ? currentQuestion.explanations.correct
+        : currentQuestion.explanations.incorrect[selectedLetter] ||
+          `Incorrect. The correct answer is ${currentQuestion.correctAnswer}. Please review the explanation.`;
+
       setFeedback({
         isCorrect,
-        explanation: currentQuestion.explanation,
+        explanation,
         correctAnswer: currentQuestion.correctAnswer,
+      });
+      console.log("Feedback set:", {
+        isCorrect,
+        selectedLetter,
+        selectedValue,
+        correctAnswer: currentQuestion.correctAnswer,
+        question: currentQuestion.question,
+        explanation,
       });
       if (isCorrect) {
         setCorrectAnswers(correctAnswers + 1);
@@ -148,6 +220,55 @@ export default function QuizPage() {
   const progressColor = subject
     ? subject.progressColor.replace(/^bg-\[#([0-9a-fA-F]{6})\]$/, "#$1")
     : "#4361ee";
+
+  if (error) {
+    return (
+      <div className="bg-[#F0F1F2] min-h-screen">
+        <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
+          <button
+            onClick={() => (window.location.href = `/subject/${subjectId}`)}
+            className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
+          >
+            Back to {title}
+          </button>
+        </div>
+        <div className="max-w-[800px] mx-auto p-[10px]">
+          <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
+            <p className="text-[16px] text-red-600 mb-[15px]">{error}</p>
+            <button
+              onClick={() => (window.location.href = `/subject/${subjectId}`)}
+              className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
+            >
+              Back to {title}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-[#F0F1F2] min-h-screen">
+        <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
+          <button
+            onClick={() => (window.location.href = `/subject/${subjectId}`)}
+            className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
+          >
+            Back to {title}
+          </button>
+        </div>
+        <div className="max-w-[800px] mx-auto p-[10px]">
+          <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
+            <p className="text-[16px] text-[#555] mb-[15px]">
+              Loading your quiz questions, please wait...
+            </p>
+            <div className="w-[100px] h-[100px] border-4 border-[#4361ee] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#F0F1F2] min-h-screen">
@@ -204,6 +325,9 @@ export default function QuizPage() {
             disabled={!!feedback}
             onSubmit={handleSubmit}
             feedback={feedback}
+            topic={currentQuestion.topic}
+            passage={currentQuestion.passage} // Pass the passage to QuizCard
+            explanations={currentQuestion.explanations}
           />
 
           {/* Next Question / Finish Quiz button */}
@@ -217,12 +341,20 @@ export default function QuizPage() {
                   Next Question
                 </button>
               ) : (
-                <CustomLink
-                  href={`/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`}
+                <button
+                  onClick={() => {
+                    // Pass questions to the results page via history state
+                    window.history.pushState(
+                      { questions },
+                      "",
+                      `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`
+                    );
+                    window.location.href = `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`;
+                  }}
                   className="px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold bg-[#4361ee] text-[white] hover:bg-[#3251dd] transition-colors max-sm:text-center max-sm:w-full focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0"
                 >
                   Finish Quiz
-                </CustomLink>
+                </button>
               )}
             </div>
           )}

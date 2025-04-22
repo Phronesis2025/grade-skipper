@@ -1,168 +1,143 @@
-General Purpose and User Flow
-Objective: 
--Assess knowledge, practice skills and unlock achievements (more on this below)
-
+General Purpose and User Flow Objective: -Assess knowledge, practice skills, and unlock achievements (more on this below)
 Quiz Initiation: How do users reach the quiz page?
--When a user clicks on the subject button on the homepage, it will bring them to an intermediary page where they can choose a grade level of the quiz they want to take. 
--The grade levels will be 6th, 7th, 8th & 9th grade levels.  
+-When a user clicks on the subject button on the homepage, it will bring them to an intermediary page where they can choose a grade level of the quiz they want to take.
+-The grade levels will be 6th, 7th, 8th, & 9th grade levels.
+
 -Should be able to select from radio buttons. Once the user selects a grade level, they will click a 'Start Quiz' button which will direct them to this page, giving them the first question of that grade levels quiz set.
 
+Quiz Completion:
+-When a user selects an answer from a question, they are to click the submit button.
 
-Quiz Completion: 
--When a user selects an answer from a question, they are to click the submit button.  
--If their answer is correct, they are notified and a short message as to why that is the correct answer should appear. below the question.  A button should replace the submit button to allow them to move on to the next question.
--If their answer is incorrect, they are notified and a short message should appear below the question giving them a breakdown of how the question can be solved and the correct answer.  The next question button should replace the submit button.
--Once a user has answered all 10 questions, they will be directed to a 'Results' page.  On this page they will see their quiz score; number correct/number incorrect/percentage.
--They will also be able to scroll through the questions from the quiz and see their answers and if that questions was correct or not.
--Then are then given the option to return to the home page, take another quiz of the same subject or retake the same quiz if they failed.
+-If their answer is correct, they are notified and a detailed message explaining why that is the correct answer appears below the question, including a tip for future learning (e.g., "Great job! You recognized that 0.75 is the same as 75/100, which simplifies to 3/4. Keep practicing converting decimals to fractions!"). A button should replace the submit button to allow them to move on to the next question.
+-If their answer is incorrect, they are notified and a detailed message appears below the question explaining why their selected option is wrong, identifying the likely mistake, and guiding them toward the correct approach (e.g., "Option D (2/3) is incorrect. When you divide 2 by 3, you get approximately 0.666, which is less than 0.75. To convert 0.75 to a fraction, recognize that 0.75 = 75/100, which simplifies to 3/4, so the correct answer is option A."). The next question button should replace the submit button.
+-Once a user has answered all 10 questions, they will be directed to a 'Results' page. On this page, they will see their quiz score: number correct/number incorrect/percentage.
+-They will also be able to scroll through the questions from the quiz and see their answers and if that question was correct or not.
+-They are then given the option to return to the home page, take another quiz of the same subject, or retake the same quiz if they failed.
 -The homepage stats will update with the most recent scores when the user returns to the homepage.
 
-Quiz Length: 
--All subjects should have 10 questions except for Coding & AI.  Start with 5 questions for those subjects.
+Quiz Length:
+-All subjects should have 10 questions except for Coding & AI. Start with 5 questions for those subjects.
 
-Attempts: 
--User is allowed to retake each quiz as many times as they like. 
--If they achieve a higher score then previously, the previous scores should be overridden.  
+Attempts:
+-Users are allowed to retake each quiz as many times as they like.
+-If they achieve a higher score than previously, the previous scores should be overridden.
+
 -Once a user achieves 100% on a quiz, they are not given the option to retake again.
 
-2. Data and Content
-Question Source: 
--All quiz questions, answers, hints and explanations or messages should come from OpenAI.  
--When a user selects the subject and grade level quiz they want to take, an API call should be made to OpenAI to generate a list of 10 grade level question regarding that subject, along with 4 multiple choice answers and a summary for the correct and incorrect answer short message described above.
--We can discuss later the opportunity of setting up a database to store these questions and the respective data that goes along with each one.
-
-Question Format: 
+Data and Content Question Source: -All quiz questions, answers, hints, and explanations or messages come from OpenAI.
+-When a user selects the subject and grade level quiz they want to take, an API call is made to OpenAI to generate a list of 10 grade-level questions (5 for Coding & AI) regarding that subject, along with 4 multiple-choice answers (or 2 for True/False), a topic tag, a hint, and detailed explanations for both correct and incorrect answers. Incorrect explanations are specific to each option (e.g., { "A": "...", "B": "...", "C": "...", "D": "..." }). -The OpenAI API call is optimized for speed with caching (in-memory for now) and a lower temperature setting (0.4) to reduce generation time. -We can discuss later the opportunity of setting up a database to store these questions and the respective data that goes along with each one.
+Question Format:
 -Questions should be either multiple choice (4 options) or True/False.
 
-Correct Answers: 
--Storage and validation of correct answers: This will need to be discussed as to what the best options for this are.
+Correct Answers:
+-Storage and validation of correct answers: OpenAI provides the correct answer as a letter (A, B, C, D for multiple choice; A, B for True/False). During the quiz, questions and answers are stored in memory (useState) in app/subject/[id]/quiz/[grade]/page.tsx. Post-completion, results are saved to Supabase (TBD: finalize schema).
 
-Randomization: 
+Randomization:
 -Randomize the order of the questions for each quiz.
 
-Subject-Specific Content: 
+Subject-Specific Content:
 -Make it a mix of topics that pertain to that subject, but tag each question with a topic.
 -These tags will be used to track focus areas for improvements.
 
-3. User Interactions
-Answer Selection:
--User will select their answer by clicking the radio button.
--A blue shaded background should appear on the selected answer.
--The user should have the ability to change their answer selection before submitting.
-The "Submit Answer" button should be disabled until an answer is selected.
--Remove the 'Previous' button for now.
--Users can not skip questions.  Must answer sequentially.
-
+User Interactions Answer Selection: -Users will select their answer by clicking the radio button. -A blue shaded background should appear on the selected answer. -The user should have the ability to change their answer selection before submitting. -The "Submit Answer" button should be disabled until an answer is selected. -Remove the 'Previous' button for now. -Users cannot skip questions. Must answer sequentially.
 Navigation:
 Submit Answer:
--See details above for actions after clicking "Submit Answer" button.
+-See details above for actions after clicking the "Submit Answer" button.
 -No retry for incorrect answers.
--See details above for actions after last question answer is submitted.
+-See details above for actions after the last question answer is submitted.
 
 Tools (Hint, Calculator, Notes):
--Hint: Display a static text hint (e.g., “Divide numerator and denominator by their GCD”). 
--Hints should be generated by OpenAI when question set is generated.
+-Hint: Display a static text hint (e.g., “Divide numerator and denominator by their GCD”).
+-Hints are generated by OpenAI when the question set is generated.
 -Calculator: Open a simple modal with basic operations (+, -, *, /).
--Lets discuss simple options here.
--Notes: not needed.  Remove.
--No calculator is needed for Subjects/questions that would need it.
+-Implementation: TBD (search for a free React calculator component like react-simple-calculator).
+-No calculator is needed for subjects/questions that wouldn’t need it (e.g., hidden for Reading, History, English, Coding & AI, Logic Puzzles).
+-Notes: Not needed. Remove.
 
 Progress Bar:
 -Progress bar should show progress through the 10 questions.
--If they have completed five questions and are on question 6, the bar should show 50%, indicating they have completed 50% of the quiz
+-If they have completed five questions and are on question 6, the bar should show 50%, indicating they have completed 50% of the quiz.
 
-4. Progress Tracking and Integration
-Homepage Stats: 
--Stat boxes should go in this order:
-1. Total quiz score percentage
-2. Quizzes completed
-3. Current Streak/Longest Streak
-4. Achievements
--Total quiz score percentage: Total score from all completed quizzes, all subjects.  Correct answers divided but total questions answered.
--Quizzes completed: Increment by 1 for each quiz completed.
--Current Streak/Longest Streak: Increment daily (e.g., if user takes a quiz today, streak becomes 2)? Reset on missed days. 'Current Streak" title replaced with 'Longest Streak' and max count of days should be shown. Steak counts should be stored and when a user breaks their previous best streak, 'Current Streak' title shown with current streak number below.
--Achievements: Display number of achievements a user has earned.
--User should earn achievements for multiple tasks
-1. Answering a certain number of questions correct in a row
-2. Mastering a subjects grade level
-3. Breaking a previous Streak
--Ideas can be generated to develop more achievement opportunities.
-
-Subject Progress: 
--User must achieve 90% or better on 5 grade level quizzes for each subject before mastery for that grade level is achieved.
--Once mastery for that grade level is achieved, next grade level quiz sets are open to be generated.
+Progress Tracking and Integration Homepage Stats: -Stat boxes should go in this order:
+Total quiz score percentage
+Quizzes completed
+Current Streak/Longest Streak
+Achievements -Total quiz score percentage: Total score from all completed quizzes, all subjects. Correct answers divided by total questions answered. -Quizzes completed: Increment by 1 for each quiz completed. -Current Streak/Longest Streak: Increment daily (e.g., if user takes a quiz today, streak becomes 2). Reset on missed days. "Current Streak" title replaced with "Longest Streak" and max count of days should be shown. Streak counts should be stored, and when a user breaks their previous best streak, "Current Streak" title is shown with the current streak number below. -Achievements: Display the number of achievements a user has earned. -Users should earn achievements for multiple tasks:
+Answering a certain number of questions correctly in a row
+Mastering a subject’s grade level
+Breaking a previous Streak -Ideas can be generated to develop more achievement opportunities.
+Subject Progress:
+-Users must achieve 90% or better on 5 grade-level quizzes for each subject before mastery for that grade level is achieved.
+-Once mastery for that grade level is achieved, the next grade-level quiz sets are open to be generated.
 -Cap at 100% mastery for each grade level for each subject.
 -Progress should be stored for continued learning and progress.
 
-Points: 
--Points are earned for each correct answer submitted, quizzes completed with 90% or above score, achievements earned.
+Points:
+-Points are earned for each correct answer submitted, quizzes completed with 90% or above score, and achievements earned.
 -1 point for each correct answer
 -10 points for each passing quiz completion
 -25 points for each achievement earned
 
-Storage: 
--Lets discuss storage options
+Storage:
+-TBD: Finalize Supabase vs. local storage. Supabase is preferred for persistent user data across devices, with a free tier available. Temporary storage during the quiz uses React state (useState) in app/subject/[id]/quiz/[grade]/page.tsx.
 
-5. Visual and Behavioral Feedback
-Correct/Incorrect Feedback:
--After submitting each question:
--Correct Answer - green check mark should be shown next to selected answer
--Incorrect Answer - red X shown next to selected answer, green check mark shown next to correct answer
--Explanation message from OpenAI should be shown below Hint and Calculator tool buttons
-
+Visual and Behavioral Feedback Correct/Incorrect Feedback: -After submitting each question: -Correct Answer: Green check mark shown next to the selected answer. -Incorrect Answer: Red X shown next to the selected answer, green check mark shown next to the correct answer. -Detailed explanation message from OpenAI shown below Hint and Calculator tool buttons, specific to the user’s selected option for incorrect answers.
 Error Handling:
--Submit Answer button should be disabled until an answer is selected
--No quiz available shown be shown if no data for subject
+-"Submit Answer" button should be disabled until an answer is selected.
+-"No quiz available" shown if no data for subject (e.g., OpenAI API call fails), with "Retry" and "Back to [Subject]" buttons.
 
 Loading State:
--When a user selects a grade level quiz for that subject, a loading spinner should be shown with a message to the user 'Generating Quiz' until the quiz questions are obtained from OpenAI.
--Anytime a user must wait more than 2 seconds, a loading spinner shall be shown
+-When a user selects a grade-level quiz for that subject, a loading spinner (#4361ee) should be shown with the message "Loading your quiz questions, please wait..." until the quiz questions are obtained from OpenAI.
+-Anytime a user must wait more than 2 seconds, a loading spinner shall be shown.
 
 Completion Feedback:
--Once a quiz is completed, they will be navigated to a 'Results' page as described above
+-Once a quiz is completed, users will be navigated to a 'Results' page as described above.
 -They should be able to view their quiz score and review the questions with the correct and incorrect answers.
 
-6. Edge Cases and Constraints
-Quiz Availability: 
--These will be generated by OpenAI
--Grade levels above grade 6 will be locked until mastery has been achieved for that subject grade level
+Edge Cases and Constraints Quiz Availability: -These will be generated by OpenAI. -Grade levels above grade 6 will be locked until mastery has been achieved for that subject grade level.
+Time Limits:
+-No time limits.
 
-Time Limits: 
--No time limits
-
-Interruptions: 
+Interruptions:
 -Restart from question 1.
--No quiz data should be saved until quiz is completed.
+-No quiz data should be saved until the quiz is completed.
 
-Accessibility: 
--Best practices here
+Accessibility:
+-Keyboard navigation: Tab through radio buttons, "Submit Answer", "Next Question", "Back to [Subject]", Enter to select/submit.
+-Touch targets: Minimum 48x48px for radio buttons, buttons on mobile.
+-No horizontal scrolling: Wrap explanations, stack elements vertically.
+-TBD: ARIA labels, screen reader support, high-contrast mode.
 
-Mobile Behavior: 
--Best practices here
+Mobile Behavior:
+-Larger touch targets: Minimum 48x48px.
+-Full-width buttons on mobile.
+-Avoid horizontal scrolling: Stack elements vertically.
 
-7. Integration with Homepage
-Navigation Back: 
--Provide a "Back to Home' button/link on the quiz page.
--If the user clicks this button, no quiz data is saved.
+Integration with Homepage Navigation Back: -Provide a "Back to [Subject]" button/link on the quiz page, styled as bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold, positioned top-right. -If the user clicks this button, no quiz data is saved.
+Subject Context:
+-Subject shall be shown as the title of the quiz page with the question topic as a sub-header underneath.
 
-Subject Context: 
--Subject shall be shown as the title of the quiz page with the question topic as a sub-header underneath
+Progress Sync:
+-Homepage should update with the newest stats each time the user navigates to it.
 
-Progress Sync: 
--Homepage should update with newest stats each time user navigates to it
+Dynamic Routing:
+-Uses Next.js dynamic routes: /subject/[id] for grade selection, /subject/[id]/quiz/[grade] for the quiz, /subject/[id]/results for results.
 
-Dynamic Routing: 
--Best practices here
+Future Features Results Page: -See details above for the Results page.
+Adaptive Quizzes:
+-No adaptive functionality needs to be implemented right now. Can look into future options later.
 
-8. Future Features
-Results Page: 
--See details above for Results page
+Analytics:
+-No.
 
-Adaptive Quizzes: 
--No adaptive functionality needs to be implemented right now.  Can look into future options later.
+Multi-Quiz Support:
+-To be determined later.
+</DOCUMENT>
 
-Analytics: 
--No
+Changes:
 
-Multi-Quiz Support: 
--To be determined later
+Quiz Completion: Updated the descriptions for correct and incorrect feedback to reflect the detailed explanations now provided by OpenAI, including examples of the expected format.
+Question Source: Added details about the OpenAI integration, including the new explanations.incorrect structure (object mapping each option to its explanation), caching for speed, and the use of temperature: 0.4 for faster generation.
+Correct Answers: Specified that questions and answers are stored in memory during the quiz using React state and will be saved to Supabase post-completion (TBD).
+Loading State: Updated the loading message to match the implemented UI ("Loading your quiz questions, please wait...").
+Accessibility: Added specific accessibility requirements already implemented (keyboard navigation, touch targets, no horizontal scrolling), with TBD items noted.

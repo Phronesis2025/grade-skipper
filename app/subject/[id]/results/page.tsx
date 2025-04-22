@@ -3,8 +3,7 @@
 import { useParams, useSearchParams } from "next/navigation";
 import CustomLink from "@/components/CustomLink";
 import Accordion from "@/components/Accordion";
-import ConfirmationModal from "@/components/ConfirmationModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { subjects } from "@/lib/subjects";
 
 // Define the Subject type
@@ -17,79 +16,14 @@ type Subject = {
   progressColor: string;
 };
 
-// Mock data for questions (to be replaced with dynamic data in Phase 4)
-const mockQuestions = [
-  {
-    question: "What is 2 + 2?",
-    options: ["A) 3", "B) 4", "C) 5", "D) 6"],
-    correctAnswer: "B",
-    userAnswer: "B",
-    explanation: "2 + 2 equals 4.",
-  },
-  {
-    question: "What is 5 - 3?",
-    options: ["A) 1", "B) 2", "C) 3", "D) 4"],
-    correctAnswer: "B",
-    userAnswer: "B",
-    explanation: "5 - 3 equals 2.",
-  },
-  {
-    question: "What is 3 × 3?",
-    options: ["A) 6", "B) 9", "C) 12", "D) 15"],
-    correctAnswer: "B",
-    userAnswer: "C",
-    explanation: "3 × 3 equals 9. You selected 12, which is incorrect.",
-  },
-  {
-    question: "What is 10 ÷ 2?",
-    options: ["A) 2", "B) 3", "C) 4", "D) 5"],
-    correctAnswer: "D",
-    userAnswer: "D",
-    explanation: "10 ÷ 2 equals 5.",
-  },
-  {
-    question: "What is 7 + 8?",
-    options: ["A) 13", "B) 14", "C) 15", "D) 16"],
-    correctAnswer: "C",
-    userAnswer: "C",
-    explanation: "7 + 8 equals 15.",
-  },
-  {
-    question: "What is 12 - 4?",
-    options: ["A) 6", "B) 7", "C) 8", "D) 9"],
-    correctAnswer: "C",
-    userAnswer: "C",
-    explanation: "12 - 4 equals 8.",
-  },
-  {
-    question: "What is 4 × 5?",
-    options: ["A) 16", "B) 18", "C) 20", "D) 22"],
-    correctAnswer: "C",
-    userAnswer: "B",
-    explanation: "4 × 5 equals 20. You selected 18, which is incorrect.",
-  },
-  {
-    question: "What is 9 ÷ 3?",
-    options: ["A) 2", "B) 3", "C) 4", "D) 5"],
-    correctAnswer: "B",
-    userAnswer: "B",
-    explanation: "9 ÷ 3 equals 3.",
-  },
-  {
-    question: "What is 6 + 7?",
-    options: ["A) 11", "B) 12", "C) 13", "D) 14"],
-    correctAnswer: "C",
-    userAnswer: "C",
-    explanation: "6 + 7 equals 13.",
-  },
-  {
-    question: "What is 15 - 6?",
-    options: ["A) 7", "B) 8", "C) 9", "D) 10"],
-    correctAnswer: "C",
-    userAnswer: "C",
-    explanation: "15 - 6 equals 9.",
-  },
-];
+// Define the Question type expected by Accordion
+interface Question {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  userAnswer: string | null;
+  explanation: string;
+}
 
 export default function ResultsPage() {
   const params = useParams();
@@ -103,14 +37,41 @@ export default function ResultsPage() {
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
   const isPerfectScore = percentage === 100;
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // State to hold quiz questions
+  const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
+
+  // Retrieve questions from history.state
+  useEffect(() => {
+    const state = window.history.state;
+    if (state && state.questions) {
+      // Ensure the questions match the expected Question type
+      const questions: Question[] = state.questions.map((q: any) => ({
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        userAnswer: q.userAnswer,
+        explanation:
+          q.explanation ||
+          (q.explanations
+            ? q.userAnswer &&
+              q.userAnswer.split(")")[0].trim() === q.correctAnswer
+              ? q.explanations.correct
+              : q.explanations.incorrect
+            : "No explanation provided."),
+      }));
+      setQuizQuestions(questions);
+      console.log("Quiz questions loaded:", questions);
+    } else {
+      console.warn("No quiz questions found in history.state");
+    }
+  }, []);
 
   return (
     <div className="bg-[#F0F1F2] min-h-screen">
       {/* Back to Home Button */}
       <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => (window.location.href = "/")}
           className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
         >
           Back to Home
@@ -141,7 +102,9 @@ export default function ResultsPage() {
 
           {/* Accordion for Question Review */}
           <div className="mb-[15px]">
-            <Accordion questions={mockQuestions} />
+            <Accordion
+              questions={quizQuestions.length > 0 ? quizQuestions : []}
+            />
           </div>
 
           {/* Navigation Buttons */}
@@ -166,11 +129,6 @@ export default function ResultsPage() {
           </div>
         </div>
       </div>
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={() => (window.location.href = "/")}
-      />
     </div>
   );
 }
