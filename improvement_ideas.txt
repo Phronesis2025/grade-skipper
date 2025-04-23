@@ -1,0 +1,49 @@
+# GradeSkipper Improvement Ideas
+# Created: April 22, 2025
+# Purpose: List of future features to enhance GradeSkipper, with priority levels and data storage requirements.
+
+## Ideas
+
+1. Quest System (Priority: Low)
+   - Description: Introduce quests (e.g., "Complete 3 Math quizzes this week") with rewards (points, badges).
+   - Gamification: Unlock "Quest Master" achievements for completing 10 quests.
+   - Data Storage: Supabase table `quests`: { id (uuid), user_id (varchar), quest_id (varchar), tasks_completed (jsonb), reward_earned (boolean), completed_at (timestamptz) }
+
+2. Virtual Rewards/Trophy Case (Priority: High)
+   - Description: Unlock virtual trophies (e.g., for mastering grade-level subjects) displayed in a graphical "Trophy Case" on the homepage or a dedicated page.
+   - Gamification: Reward users for collecting trophies, enhancing personalization.
+   - Data Storage: Supabase table `rewards`: { id (uuid), user_id (varchar), reward_id (varchar), type (varchar, e.g., "trophy"), name (varchar, e.g., "6th Grade Math Trophy"), unlocked_at (timestamptz) }
+   - Note: Requires storage now due to high priority.
+
+3. Mini Games (Priority: Medium)
+   - Description: Add quick games (e.g., math puzzles, word scrambles) between quizzes for variety.
+   - Gamification: Earn bonus points for high scores.
+   - Data Storage: Supabase table `game_results`: { id (uuid), user_id (varchar), game_id (varchar), score (integer), timestamp (timestamptz) }
+
+4. Streak Freeze (Priority: High)
+   - Description: Allow users to "freeze" their streak for a day using 10 points to maintain engagement during breaks, with no limit on freezes.
+   - Gamification: Award "Streak Saver" badges for using freezes wisely.
+   - Data Storage: Supabase table `streak_freezes`: { id (uuid), user_id (varchar), freeze_date (date), points_spent (integer) }
+   - Note: Requires storage now due to high priority.
+
+5. Adaptive Difficulty (Priority: Low)
+   - Description: Adjust quiz difficulty based on topic performance (e.g., harder Fractions questions if user excels).
+   - Gamification: Award "Challenge Accepted" badges for mastering hard quizzes.
+   - Data Storage: Extend `quizzes` table with `difficulty` (varchar, e.g., "easy", "medium", "hard")
+
+6. Topic Performance (Priority: Medium)
+   - Description: Track detailed stats per topic (e.g., correct answers, total questions, average score) for recommendations.
+   - Gamification: Support "Recommended Next Steps" and analytics.
+   - Data Storage: Supabase table `topic_performance`: { id (uuid), user_id (varchar), subject (varchar), topic (varchar), correct_answers (integer), total_questions (integer), average_score (float) }
+
+7. Session Data (Priority: High)
+   - Description: Track time spent per quiz, hints used, and calculator usage.
+   - Gamification: Reward "Hint Avoider" achievements; display on admin page.
+   - Data Storage: Extend `quizzes` table with { time_spent (integer, seconds), hints_used (integer), calculator_used (boolean) }
+   - Note: Requires storage now due to high priority and admin page display.
+
+8. Event Logs (Priority: High)
+   - Description: Record user actions (e.g., quiz started, achievement earned, streak frozen) for analytics.
+   - Gamification: Support admin page reports and engagement tracking.
+   - Data Storage: Supabase table `event_logs`: { id (uuid), user_id (varchar), event_type (varchar, e.g., "quiz_completed"), details (jsonb, e.g., { "subject": "mathematics", "score": 80 }), timestamp (timestamptz) }
+   - Note: Requires storage now due to high priority and admin page display.

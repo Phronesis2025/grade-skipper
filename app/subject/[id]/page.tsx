@@ -6,6 +6,21 @@ import { useState, useEffect } from "react";
 import CustomLink from "@/components/CustomLink";
 import { subjects } from "@/lib/subjects";
 
+import { saveCompletedQuiz, getCompletedQuizzes } from "@/lib/storage";
+
+const testQuiz = {
+  subject: "mathematics",
+  topic: "fractions!!",
+  grade: 6,
+  score: 80,
+  timestamp: new Date().toISOString(),
+  time_spent: 600,
+  hints_used: 2,
+  calculator_used: false,
+};
+saveCompletedQuiz(testQuiz);
+console.log(getCompletedQuizzes());
+
 export default function SubjectPage() {
   // Get the subject ID from the route parameter
   const params = useParams();

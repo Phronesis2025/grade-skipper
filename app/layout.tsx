@@ -1,11 +1,11 @@
 "use client";
 
 import "./globals.css";
+import "../styles/sticky-header.css";
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/components/layout/Navbar";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-
-// We can't export metadata with "use client", so we handle it differently
 
 export default function RootLayout({
   children,
@@ -38,24 +38,6 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
         <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
-        {/* Force CSS for sticky navbar */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-          .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background-color: white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            width: 100%;
-          }
-          .sticky-header nav {
-            width: 100%;
-          }
-        `,
-          }}
-        />
       </head>
       <body style={{ margin: 0, padding: 0 }}>
         <div className="sticky-header">

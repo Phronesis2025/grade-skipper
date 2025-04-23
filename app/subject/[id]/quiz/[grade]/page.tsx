@@ -1,435 +1,264 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import CustomLink from "@/components/CustomLink";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import QuizCard from "@/components/QuizCard";
-import ProgressBar from "@/components/ProgressBar";
-import CalculatorModal from "@/components/CalculatorModal";
-import HintModal from "@/components/HintModal";
-import ConfirmationModal from "@/components/ConfirmationModal";
-import { useState, useEffect, useRef } from "react";
+import CustomLink from "@/components/CustomLink";
 import { subjects } from "@/lib/subjects";
-import LoadingAnimation from "@/components/LoadingAnimation";
+import { saveCompletedQuiz } from "@/lib/storage";
+import { v4 as uuidv4 } from "uuid";
 
-// Update type names to match route.ts
-type QuizQuestion = {
-  topic: string;
+interface Question {
   question: string;
   options: string[];
   correctAnswer: string;
-  explanation: string;
-  hint?: string;
-  passage?: string; // Add passage field for comprehension questions
-};
-
-// Extend QuizQuestion to include userAnswer and new explanations structure
-type ExtendedQuizQuestion = QuizQuestion & {
   userAnswer: string | null;
   explanations: {
     correct: string;
     incorrect: { [key: string]: string };
   };
-};
+  topic: string;
+}
 
 export default function QuizPage() {
-  // Get the route parameters
   const params = useParams();
+  const router = useRouter();
   const subjectId = params.id as string;
-  const grade = parseInt(params.grade as string, 10);
+  const grade = parseInt(params.grade as string) || 6;
+  const subject = subjects.find((subject) => subject.id === subjectId);
+  const title = subject?.name || "Subject Not Found";
 
-  // State for quiz
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [feedback, setFeedback] = useState<{
-    isCorrect: boolean;
-    explanation: string;
-    correctAnswer: string;
-  } | null>(null);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [questions, setQuestions] = useState<ExtendedQuizQuestion[]>([]);
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [isHintOpen, setIsHintOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [startTime, setStartTime] = useState(Date.now());
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [calculatorUsed, setCalculatorUsed] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
 
-  // Ref to prevent duplicate fetches
-  const hasFetched = useRef(false);
-
-  // Fetch questions from API
+  // Load Supabase client dynamically
+  const [supabase, setSupabase] = useState<any>(null);
   useEffect(() => {
-    if (hasFetched.current) return; // Prevent duplicate fetches
-    hasFetched.current = true;
+    if (typeof window !== "undefined") {
+      import("@/lib/supabase").then((mod) => setSupabase(mod.supabase));
+    }
+  }, []);
 
+  // Fetch questions and insert quiz_attempts
+  useEffect(() => {
     const loadQuestions = async () => {
+      setLoading(true);
       try {
-        setIsLoading(true);
-        setError(null);
-        // Fetch questions with subject-specific count and subject
-        const count = subjectId === "coding-ai" ? 5 : 10;
         const response = await fetch(
-          `/api/questions?grade=${grade}&count=${count}&subject=${subjectId}`
+          `/api/questions?subject=${subjectId}&grade=${grade}`
         );
-        if (!response.ok) {
-          throw new Error("Failed to load questions");
-        }
+        if (!response.ok) throw new Error("Failed to fetch questions");
         const data = await response.json();
-        console.log("Raw API response:", data); // Debug: Log raw API response to verify explanations.incorrect
-        // Initialize userAnswer as null for each question
-        const questionsWithUserAnswer: ExtendedQuizQuestion[] = data.map(
-          (q: QuizQuestion) => ({
-            ...q,
-            userAnswer: null,
-            explanations: {
-              correct:
-                q.explanations?.correct ||
-                q.explanation ||
-                "Correct! Well done!",
-              incorrect: q.explanations?.incorrect || {
-                A: "Review the explanation and try again",
-                B: "Review the explanation and try again",
-                C: "Review the explanation and try again",
-                D: "Review the explanation and try again",
-              },
+        const formattedQuestions: Question[] = data.questions.map((q: any) => ({
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          userAnswer: null,
+          explanations: q.explanations || { correct: "", incorrect: {} },
+          topic: q.topic || "General",
+        }));
+        setQuestions(formattedQuestions);
+        console.log("Loaded questions:", formattedQuestions);
+
+        // Insert quiz_attempts
+        if (supabase && formattedQuestions.length > 0) {
+          const newSessionId = uuidv4();
+          setSessionId(newSessionId);
+          const { error } = await supabase.from("quiz_attempts").insert([
+            {
+              session_id: newSessionId,
+              subject: subjectId,
+              topic: formattedQuestions[0].topic,
+              grade,
+              completed: false,
+              timestamp: new Date().toISOString(),
             },
-          })
-        ); // Preserve explanations.incorrect from API response, apply defaults only if missing
-        setQuestions(questionsWithUserAnswer);
-        setCurrentQuestionIndex(0);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load questions"
-        );
+          ]);
+          if (error) console.warn("Failed to insert quiz_attempts:", error);
+        }
+      } catch (error) {
+        console.error("Error loading questions:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
     loadQuestions();
-  }, [grade, subjectId]);
+  }, [subjectId, grade, supabase]);
 
-  // Log state changes
-  useEffect(() => {
-    console.log("isCalculatorOpen:", isCalculatorOpen);
-    console.log("isHintOpen:", isHintOpen);
-  }, [isCalculatorOpen, isHintOpen]);
-
-  // Get the current question with logging
-  const currentQuestion = questions[currentQuestionIndex] || questions[0];
-  console.log("Current Question:", currentQuestion);
-  console.log("Questions Array:", questions);
-  console.log("Current Index:", currentQuestionIndex);
-
-  // Handle answer submission
-  const handleSubmit = () => {
-    if (selectedAnswer && currentQuestion) {
-      // Extract the letter (e.g., "B") from selectedAnswer (e.g., "B) 4")
-      const selectedLetter = selectedAnswer.split(")")[0].trim();
-      // Extract the value (e.g., "4") from selectedAnswer (e.g., "B) 4")
-      const selectedValue = selectedAnswer.split(")")[1].trim();
-      // Validate correctAnswer format
-      const isLetterFormat = ["A", "B", "C", "D"].includes(
-        currentQuestion.correctAnswer
-      );
-
-      let isCorrect: boolean;
-      if (isLetterFormat) {
-        // Compare letters if correctAnswer is in letter format (e.g., "B")
-        isCorrect = selectedLetter === currentQuestion.correctAnswer;
-      } else {
-        // Fallback: Compare values if correctAnswer is not a letter (e.g., "4")
-        const correctOption = currentQuestion.options.find((opt) =>
-          opt.startsWith(`${currentQuestion.correctAnswer})`)
-        );
-        const correctValue = correctOption
-          ? correctOption.split(")")[1].trim()
-          : null;
-        isCorrect = correctValue ? selectedValue === correctValue : false;
-        console.warn(
-          `Invalid correctAnswer format for question: "${currentQuestion.question}". Expected letter (A, B, C, D), got "${currentQuestion.correctAnswer}". Using fallback comparison.`
-        );
-      }
-
-      // Update the question with the user's answer
-      setQuestions((prevQuestions) => {
-        const updatedQuestions = [...prevQuestions];
-        updatedQuestions[currentQuestionIndex] = {
-          ...updatedQuestions[currentQuestionIndex],
-          userAnswer: selectedAnswer,
-        };
-        return updatedQuestions;
-      });
-
-      // Debug: Log selectedLetter and incorrect explanations
-      console.log(
-        "handleSubmit: selectedLetter:",
-        selectedLetter,
-        "explanations.incorrect:",
-        currentQuestion.explanations.incorrect
-      );
-
-      // Select the appropriate incorrect explanation based on the user's selection
-      const explanation = isCorrect
-        ? currentQuestion.explanations.correct
-        : currentQuestion.explanations.incorrect[selectedLetter] ||
-          `Incorrect. The correct answer is ${currentQuestion.correctAnswer}. Please review the explanation.`;
-
-      setFeedback({
-        isCorrect,
-        explanation,
-        correctAnswer: currentQuestion.correctAnswer,
-      });
-      console.log("Feedback set:", {
-        isCorrect,
-        selectedLetter,
-        selectedValue,
-        correctAnswer: currentQuestion.correctAnswer,
-        question: currentQuestion.question,
-        explanation,
-      });
-      if (isCorrect) {
-        setCorrectAnswers(correctAnswers + 1);
-      }
-    }
+  const handleAnswerSelect = (answer: string) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[currentQuestionIndex].userAnswer = answer;
+    setQuestions(updatedQuestions);
   };
 
-  // Handle next question or finish quiz
-  const handleNextQuestion = () => {
-    setSelectedAnswer(null);
-    setFeedback(null);
+  const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
-  // Handle calculator open
-  const handleOpenCalculator = () => {
-    console.log("Calculator button clicked");
-    setIsCalculatorOpen(true);
-  };
+  const handleSubmitQuiz = async () => {
+    const correctAnswers = questions.filter(
+      (q) =>
+        q.userAnswer && q.userAnswer.split(")")[0].trim() === q.correctAnswer
+    ).length;
+    const totalQuestions = questions.length;
+    const percentage =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
+    const timeSpent = Math.round((Date.now() - startTime) / 1000); // seconds
 
-  // Handle hint open
-  const handleOpenHint = () => {
-    console.log("Hint button clicked");
-    setIsHintOpen(true);
-  };
+    // Save quiz data
+    const quiz = {
+      subject: subjectId,
+      topic: questions[0]?.topic || "General",
+      grade,
+      score: percentage,
+      timestamp: new Date().toISOString(),
+      time_spent: timeSpent,
+      hints_used: hintsUsed,
+      calculator_used: calculatorUsed,
+    };
 
-  // Find the matching subject by ID
-  const subject = subjects.find((s) => s.id === subjectId);
+    try {
+      // Check for existing quiz to prevent duplicates
+      if (supabase) {
+        const { data: existingQuizzes } = await supabase
+          .from("quizzes")
+          .select("id")
+          .match({ subject: subjectId, topic: quiz.topic, grade })
+          .gte(
+            "timestamp",
+            new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+          )
+          .limit(1);
+        if (existingQuizzes && existingQuizzes.length > 0) {
+          console.log("Quiz already saved for this session");
+          return;
+        }
 
-  // Set the title and progress color from the found subject, or use a fallback
-  const title = subject ? subject.name : "Subject Not Found";
-  const progressColor = subject
-    ? subject.progressColor.replace(/^bg-\[#([0-9a-fA-F]{6})\]$/, "#$1")
-    : "#4361ee";
+        // Save to local storage
+        const localSuccess = saveCompletedQuiz(quiz);
+        if (!localSuccess) throw new Error("Failed to save to local storage");
 
-  if (error) {
-    return (
-      <div className="bg-[#F0F1F2] min-h-screen">
-        <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
-          <button
-            onClick={() => (window.location.href = `/subject/${subjectId}`)}
-            className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
-          >
-            Back to {title}
-          </button>
-        </div>
-        <div className="max-w-[800px] mx-auto p-[10px]">
-          <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
-            <p className="text-[16px] text-red-600 mb-[15px]">{error}</p>
-            <button
-              onClick={() => (window.location.href = `/subject/${subjectId}`)}
-              className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
-            >
-              Back to {title}
-            </button>
-          </div>
-        </div>
-      </div>
+        // Save to Supabase
+        const { error: quizError } = await supabase
+          .from("quizzes")
+          .insert([quiz]);
+        if (quizError) throw quizError;
+
+        // Update quiz_attempts to mark as completed
+        if (sessionId) {
+          const { error: attemptError } = await supabase
+            .from("quiz_attempts")
+            .update({ completed: true })
+            .match({ session_id: sessionId });
+          if (attemptError)
+            console.warn("Failed to update quiz_attempts:", attemptError);
+        }
+
+        // Log quiz_completed event
+        const { error: logError } = await supabase.from("event_logs").insert([
+          {
+            event_type: "quiz_completed",
+            details: {
+              subject: subjectId,
+              topic: quiz.topic,
+              grade,
+              score: percentage,
+            },
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        if (logError) throw logError;
+      }
+    } catch (error) {
+      console.error("Error saving quiz:", error);
+    }
+
+    // Navigate to results
+    window.history.pushState(
+      {
+        questions,
+        time_spent: timeSpent,
+        hints_used: hintsUsed,
+        calculator_used: calculatorUsed,
+      },
+      "",
+      `/subject/${subjectId}/results?score=${correctAnswers}&total=${totalQuestions}`
     );
+    router.push(
+      `/subject/${subjectId}/results?score=${correctAnswers}&total=${totalQuestions}`
+    );
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  if (isLoading) {
-    return (
-      <div className="bg-[#F0F1F2] min-h-screen">
-        <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
-          <button
-            onClick={() => (window.location.href = `/subject/${subjectId}`)}
-            className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
-          >
-            Back to {title}
-          </button>
-        </div>
-        <div className="max-w-[800px] mx-auto p-[10px]">
-          <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
-            <LoadingAnimation />
-          </div>
-        </div>
-      </div>
-    );
+  if (questions.length === 0) {
+    return <div>No questions available.</div>;
   }
 
   return (
     <div className="bg-[#F0F1F2] min-h-screen">
-      <style jsx>{`
-        button:focus-visible,
-        button:focus,
-        a:focus-visible,
-        a:focus,
-        button:active,
-        a:active {
-          outline: none !important;
-          box-shadow: none !important;
-        }
-      `}</style>
-      {/* Back to Subject link */}
-      <div className="flex justify-end px-[25px] pt-[5px] max-sm:justify-center">
-        <button
-          onClick={() => setIsModalOpen(true)}
+      <div className="flex justify-between items-center px-[25px] pt-[5px] max-sm:flex-col max-sm:gap-[10px]">
+        <CustomLink
+          href={`/subject/${subjectId}`}
           className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline focus:outline-none focus:ring-0"
         >
           Back to {title}
+        </CustomLink>
+        <button
+          onClick={() => setCalculatorUsed(true)}
+          className="bg-[#4361ee] text-[white] px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold focus:outline-none focus:ring-0"
+        >
+          Use Calculator
         </button>
       </div>
-
-      {/* Main container */}
-      <div className="max-w-[800px] mx-auto p-[10px] relative">
-        {/* Main content card */}
-        <div className="bg-[white] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-          {/* Subject header */}
-          <div className="text-center mb-[15px]">
-            <h1 className="text-[24px] font-bold mb-[5px]">{title}</h1>
-
-            {/* Progress indicator */}
-            <ProgressBar
-              currentQuestionIndex={currentQuestionIndex}
-              totalQuestions={questions.length}
-              progressColor={progressColor}
-            />
-          </div>
-
-          {/* Question navigation at top */}
-          <div className="flex items-center justify-between border-b border-[#eee] pt-[5px] pb-[10px] mb-[20px]">
-            <div className="text-[14px] text-[#555]">Grade {grade}</div>
-          </div>
-
-          {/* Question card */}
-          <QuizCard
-            question={currentQuestion.question}
-            options={currentQuestion.options}
-            selectedAnswer={selectedAnswer}
-            onAnswerSelect={(answer) => setSelectedAnswer(answer)}
-            subjectId={subjectId}
-            isSubmitDisabled={!selectedAnswer}
-            disabled={!!feedback}
-            onSubmit={handleSubmit}
-            feedback={feedback}
-            topic={currentQuestion.topic}
-            passage={currentQuestion.passage} // Pass the passage to QuizCard
-            explanations={currentQuestion.explanations}
-          />
-
-          {/* Next Question / Finish Quiz button */}
-          {feedback && (
-            <div className="flex justify-center max-sm:flex-col max-sm:gap-[10px] max-sm:items-stretch mb-[30px]">
-              {currentQuestionIndex < questions.length - 1 ? (
-                <button
-                  onClick={handleNextQuestion}
-                  className="px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold bg-[#4361ee] text-[white] hover:bg-[#3251dd] transition-colors max-sm:text-center max-sm:w-full focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0"
-                >
-                  Next Question
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    // Pass questions to the results page via history state
-                    window.history.pushState(
-                      { questions },
-                      "",
-                      `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`
-                    );
-                    window.location.href = `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`;
-                  }}
-                  className="px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold bg-[#4361ee] text-[white] hover:bg-[#3251dd] transition-colors max-sm:text-center max-sm:w-full focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0"
-                >
-                  Finish Quiz
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Separator */}
-          <div className="w-full max-w-[200px] h-[1px] bg-[#eee] mx-auto my-[15px]"></div>
-
-          {/* Tools section */}
-          <div className="flex justify-center gap-[20px] mb-[20px] mt-[20px]">
-            {/* Hint tool */}
+      <div className="max-w-[800px] mx-auto p-[10px]">
+        <h1 className="text-[24px] font-bold text-[#333] mb-[5px] text-center">
+          {title} Quiz
+        </h1>
+        <p className="text-[16px] text-[#555] mb-[15px] text-center">
+          Question {currentQuestionIndex + 1} of {questions.length}
+        </p>
+        <QuizCard
+          question={questions[currentQuestionIndex].question}
+          options={questions[currentQuestionIndex].options}
+          selectedAnswer={questions[currentQuestionIndex].userAnswer}
+          onAnswerSelect={handleAnswerSelect}
+          subjectId={subjectId}
+          isSubmitDisabled={false}
+          disabled={false}
+          onSubmit={() => {}}
+          feedback={null}
+          topic={questions[currentQuestionIndex].topic}
+          explanations={questions[currentQuestionIndex].explanations}
+        />
+        <div className="flex justify-between mt-[15px]">
+          {currentQuestionIndex < questions.length - 1 ? (
             <button
-              onClick={() => {
-                console.log("Hint button clicked");
-                setIsHintOpen(true);
-              }}
-              className="text-[14px] text-[#666] hover:text-[#4361ee] flex items-center gap-[5px] cursor-pointer bg-transparent border-none p-0 transition-colors duration-150"
+              onClick={handleNext}
+              className="bg-[#4361ee] text-[white] px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold focus:outline-none focus:ring-0"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-[20px] h-[20px]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
-              Hint
+              Next
             </button>
-
-            {["mathematics", "science"].includes(subjectId) && (
-              <button
-                onClick={() => {
-                  console.log("Calculator button clicked");
-                  setIsCalculatorOpen(true);
-                }}
-                className="text-[14px] text-[#666] hover:text-[#4361ee] flex items-center gap-[5px] cursor-pointer bg-transparent border-none p-0 transition-colors duration-150"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-[20px] h-[20px]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  />
-                </svg>
-                Calculator
-              </button>
-            )}
-          </div>
+          ) : (
+            <button
+              onClick={handleSubmitQuiz}
+              className="bg-[#4361ee] text-[white] px-[16px] py-[8px] rounded-[6px] text-[16px] font-semibold focus:outline-none focus:ring-0"
+            >
+              Finish Quiz
+            </button>
+          )}
         </div>
-
-        {/* Modals */}
-        <CalculatorModal
-          isOpen={isCalculatorOpen}
-          onClose={() => setIsCalculatorOpen(false)}
-        />
-        <HintModal
-          isOpen={isHintOpen}
-          onClose={() => setIsHintOpen(false)}
-          hint={currentQuestion.hint}
-        />
-        <ConfirmationModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onConfirm={() => (window.location.href = `/subject/${subjectId}`)}
-        />
       </div>
     </div>
   );

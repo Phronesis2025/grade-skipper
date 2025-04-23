@@ -23,6 +23,7 @@ interface Question {
   correctAnswer: string;
   userAnswer: string | null;
   explanation: string;
+  topic?: string; // Added for topic extraction
 }
 
 export default function ResultsPage() {
@@ -42,6 +43,8 @@ export default function ResultsPage() {
 
   // Retrieve questions from history.state
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const state = window.history.state;
     if (state && state.questions) {
       // Ensure the questions match the expected Question type
@@ -58,6 +61,7 @@ export default function ResultsPage() {
               ? q.explanations.correct
               : q.explanations.incorrect
             : "No explanation provided."),
+        topic: q.topic,
       }));
       setQuizQuestions(questions);
       console.log("Quiz questions loaded:", questions);

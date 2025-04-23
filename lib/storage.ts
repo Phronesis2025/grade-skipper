@@ -1,13 +1,27 @@
 /**
  * Utility functions for local storage operations.
- * These functions allow for saving and retrieving user progress,
- * quiz results, and reading logs.
+ * These functions allow for saving and retrieving user progress
+ * for quizzes and subject mastery.
  */
 
-import { Progress, QuizResult, ReadingLog } from "./types";
+import { Progress } from "./types";
 
 // Prefix for all storage keys to avoid collisions
 const STORAGE_KEY_PREFIX = "grade-skipper-";
+
+// Normalize topic strings (capitalize first letter, remove extra spaces/special characters)
+export function normalizeTopic(topic: string): string {
+  // Remove extra spaces and special characters, trim
+  const cleaned = topic
+    .replace(/[^a-zA-Z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  // Capitalize first letter of each word
+  return cleaned
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
 
 // Get a value from localStorage with error handling
 export function getItem<T>(key: string, defaultValue: T): T {
@@ -57,38 +71,71 @@ export function removeItem(key: string): boolean {
   }
 }
 
-// Specific functions for handling progress
+// Get user progress from localStorage
 export function getUserProgress(): Progress {
   return getItem<Progress>("user-progress", {
     completedQuizzes: [],
     subjectProgress: {},
     points: 0,
-    level: 1,
+    streaks: { current: 0, longest: 0, lastQuizDate: null },
+    achievements: [],
   });
 }
 
+// Save user progress to localStorage
 export function saveUserProgress(progress: Progress): boolean {
   return setItem("user-progress", progress);
 }
 
-// Specific functions for handling quiz results
-export function saveQuizResult(quizId: string, result: QuizResult): boolean {
-  const results = getItem<Record<string, QuizResult>>("quiz-results", {});
-  results[quizId] = result;
-  return setItem("quiz-results", results);
+// Save a completed quiz to localStorage
+export function saveCompletedQuiz(quiz: {
+  subject: string;
+  topic: string;
+  grade: number;
+  score: number;
+  timestamp: string;
+  time_spent: number;
+  hints_used: number;
+  calculator_used: boolean;
+}): boolean {
+  const progress = getUserProgress();
+  const normalizedTopic = normalizeTopic(quiz.topic);
+  const newQuiz = { ...quiz, topic: normalizedTopic };
+
+  // Update completedQuizzes
+  progress.completedQuizzes.push(newQuiz);
+
+  // Update subjectProgress
+  if (!progress.subjectProgress[quiz.subject]) {
+    progress.subjectProgress[quiz.subject] = {};
+  }
+  if (!progress.subjectProgress[quiz.subject][normalizedTopic]) {
+    progress.subjectProgress[quiz.subject][normalizedTopic] = {};
+  }
+  if (!progress.subjectProgress[quiz.subject][normalizedTopic][quiz.grade]) {
+    progress.subjectProgress[quiz.subject][normalizedTopic][quiz.grade] = {
+      quizScores: [],
+      mastered: false,
+    };
+  }
+  progress.subjectProgress[quiz.subject][normalizedTopic][
+    quiz.grade
+  ].quizScores.push(quiz.score);
+
+  // Check for mastery (90%+ on 5 quizzes)
+  const scores =
+    progress.subjectProgress[quiz.subject][normalizedTopic][quiz.grade]
+      .quizScores;
+  if (scores.length >= 5 && scores.slice(-5).every((score) => score >= 90)) {
+    progress.subjectProgress[quiz.subject][normalizedTopic][
+      quiz.grade
+    ].mastered = true;
+  }
+
+  return saveUserProgress(progress);
 }
 
-export function getQuizResults(): Record<string, QuizResult> {
-  return getItem<Record<string, QuizResult>>("quiz-results", {});
-}
-
-// Specific functions for handling reading logs
-export function saveReadingLog(log: ReadingLog): boolean {
-  const logs = getItem<ReadingLog[]>("reading-logs", []);
-  logs.push(log);
-  return setItem("reading-logs", logs);
-}
-
-export function getReadingLogs(): ReadingLog[] {
-  return getItem<ReadingLog[]>("reading-logs", []);
+// Get completed quizzes from localStorage
+export function getCompletedQuizzes(): Progress["completedQuizzes"] {
+  return getUserProgress().completedQuizzes;
 }

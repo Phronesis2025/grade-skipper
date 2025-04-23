@@ -6,12 +6,14 @@ interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  message: string;
 }
 
 export default function ConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
+  message,
 }: ConfirmationModalProps) {
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -58,7 +60,7 @@ export default function ConfirmationModal({
           Are you sure?
         </div>
         <p className="text-[16px] text-[#555] mb-[20px] text-center">
-          Do you want to return to the home page?
+          {message}
         </p>
         <div className="flex justify-center gap-[10px]">
           <button
