@@ -77,6 +77,7 @@ export function getUserProgress(): Progress {
     completedQuizzes: [],
     subjectProgress: {},
     points: 0,
+    level: 1,
     streaks: { current: 0, longest: 0, lastQuizDate: null },
     achievements: [],
   });
@@ -87,17 +88,21 @@ export function saveUserProgress(progress: Progress): boolean {
   return setItem("user-progress", progress);
 }
 
-// Save a completed quiz to localStorage
-export function saveCompletedQuiz(quiz: {
-  subject: string;
-  topic: string;
-  grade: number;
-  score: number;
-  timestamp: string;
-  time_spent: number;
-  hints_used: number;
-  calculator_used: boolean;
-}): boolean {
+// Save a completed quiz to localStorage, including points and achievements
+export function saveCompletedQuiz(
+  quiz: {
+    subject: string;
+    topic: string;
+    grade: number;
+    score: number;
+    timestamp: string;
+    time_spent: number;
+    hints_used: number;
+    calculator_used: boolean;
+  },
+  pointsToAdd: number,
+  newAchievements: { achievementId: string; name: string }[]
+): boolean {
   const progress = getUserProgress();
   const normalizedTopic = normalizeTopic(quiz.topic);
   const newQuiz = { ...quiz, topic: normalizedTopic };
@@ -132,10 +137,50 @@ export function saveCompletedQuiz(quiz: {
     ].mastered = true;
   }
 
+  // Update points
+  progress.points = (progress.points || 0) + pointsToAdd;
+
+  // Update achievements
+  progress.achievements.push(
+    ...newAchievements.map((ach) => ({
+      id: ach.achievementId,
+      name: ach.name,
+      earned: new Date().toISOString(),
+    }))
+  );
+
+  // Update streak (simplified for local storage, Supabase handles the real logic)
+  const today = new Date().toISOString().split("T")[0];
+  if (
+    !progress.streaks.lastQuizDate ||
+    progress.streaks.lastQuizDate !== today
+  ) {
+    progress.streaks.current = (progress.streaks.current || 0) + 1;
+    progress.streaks.longest = Math.max(
+      progress.streaks.longest || 0,
+      progress.streaks.current
+    );
+    progress.streaks.lastQuizDate = today;
+  }
+
   return saveUserProgress(progress);
 }
 
 // Get completed quizzes from localStorage
 export function getCompletedQuizzes(): Progress["completedQuizzes"] {
   return getUserProgress().completedQuizzes;
+}
+
+// Get points from localStorage
+export function getLocalPoints(): number {
+  return getUserProgress().points || 0;
+}
+
+// Get achievements from localStorage
+export function getLocalAchievements(): {
+  id: string;
+  name: string;
+  earned: string;
+}[] {
+  return getUserProgress().achievements || [];
 }

@@ -7,9 +7,16 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { subjects } from "@/lib/subjects";
 import { Book, Check, Flame, Lightbulb, Star, Award } from "lucide-react";
+import {
+  getLocalPoints,
+  getLocalAchievements,
+  getCompletedQuizzes,
+} from "@/lib/storage";
+
+// Hardcoded user ID for anonymous user (to be replaced with auth later)
+const ANONYMOUS_USER_ID = "123e4567-e89b-12d3-a456-426614174000";
 
 interface Quiz {
-  id: string;
   subject: string;
   topic: string;
   grade: number;
@@ -36,6 +43,7 @@ interface Achievement {
 interface SubjectProgress {
   gradeLevel: number;
   percentage: number;
+  masteryProgress: number;
 }
 
 export default function Home() {
@@ -45,6 +53,7 @@ export default function Home() {
     currentStreak: 0,
     achievements: 0,
   });
+  const [points, setPoints] = useState<number | null>(null);
   const [subjectProgress, setSubjectProgress] = useState<
     Record<string, SubjectProgress>
   >({});
@@ -65,6 +74,7 @@ export default function Home() {
         const { data: streaksData, error: streaksError } = await supabase
           .from("streaks")
           .select("current")
+          .eq("id", ANONYMOUS_USER_ID) // Added id filter
           .single();
 
         if (streaksError && streaksError.code !== "PGRST116") {
@@ -75,18 +85,35 @@ export default function Home() {
         let achievementsCount = 0;
         try {
           const { data: achievementsData, error: achievementsError } =
-            await supabase.from("achievements").select("*").eq("earned", true);
+            await supabase
+              .from("achievements")
+              .select("*")
+              .eq("id", ANONYMOUS_USER_ID)
+              .not("earned", "is", null);
 
-          if (achievementsError && achievementsError.code !== "PGRST116") {
-            console.warn(
-              "Achievements table might not exist:",
-              achievementsError.message
-            );
+          if (achievementsError) {
+            console.warn("Could not fetch achievements:", achievementsError);
           } else {
             achievementsCount = achievementsData?.length || 0;
           }
         } catch (error) {
           console.warn("Could not fetch achievements:", error);
+        }
+
+        // Fetch points
+        let pointsData: number = 0;
+        const { data: pointsResult, error: pointsError } = await supabase
+          .from("points")
+          .select("total_points")
+          .eq("id", ANONYMOUS_USER_ID) // Added id filter
+          .single();
+
+        if (pointsError && pointsError.code !== "PGRST116") {
+          console.warn("Failed to fetch points:", pointsError.message);
+          // Fallback to local storage for points specifically
+          pointsData = getLocalPoints();
+        } else {
+          pointsData = pointsResult?.total_points || getLocalPoints(); // Fallback to local storage if no data
         }
 
         // Calculate stat card metrics
@@ -106,6 +133,7 @@ export default function Home() {
           currentStreak,
           achievements: achievementsCount,
         });
+        setPoints(pointsData);
 
         // Calculate subject progress
         const progress: Record<string, SubjectProgress> = {};
@@ -115,14 +143,37 @@ export default function Home() {
             quizzesData?.filter((quiz: Quiz) => quiz.subject === subject.id) ||
             [];
 
-          // Grade Level: Use the most recent quiz's grade, default to 6 if none
-          const latestQuiz = subjectQuizzes.sort(
-            (a: Quiz, b: Quiz) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-          )[0];
-          const gradeLevel = latestQuiz ? latestQuiz.grade : 6; // Default to 6th grade
+          // Calculate highest unlocked grade and mastery progress
+          let currentGrade = 6;
+          let highestUnlockedGrade = 6;
 
-          // Percentage: Average score for this subject, default to 0 if none
+          // Check each grade level for mastery
+          while (currentGrade <= 9) {
+            const gradeQuizzes = subjectQuizzes.filter(
+              (quiz: Quiz) => quiz.grade === currentGrade && quiz.score >= 90
+            );
+
+            if (gradeQuizzes.length >= 5) {
+              // Grade is mastered, move to next grade
+              highestUnlockedGrade = currentGrade + 1;
+              currentGrade++;
+            } else {
+              // Grade not mastered, stop here
+              break;
+            }
+          }
+
+          // Calculate mastery progress for highest unlocked grade
+          const highGradeQuizzes = subjectQuizzes.filter(
+            (quiz: Quiz) =>
+              quiz.grade === highestUnlockedGrade && quiz.score >= 90
+          );
+          const masteryProgress = Math.min(
+            (highGradeQuizzes.length / 5) * 100,
+            100
+          );
+
+          // Calculate average score percentage
           const percentage =
             subjectQuizzes.length > 0
               ? subjectQuizzes.reduce(
@@ -132,19 +183,96 @@ export default function Home() {
               : 0;
 
           progress[subject.id] = {
-            gradeLevel,
+            gradeLevel: highestUnlockedGrade,
             percentage: parseFloat(percentage.toFixed(2)),
+            masteryProgress: parseFloat(masteryProgress.toFixed(2)),
           };
         }
 
         setSubjectProgress(progress);
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load data", {
+        toast.error("Failed to load data, falling back to local storage", {
           position: "top-right",
           autoClose: 3000,
           style: { background: "#F0F4FF", color: "#4361ee" },
         });
+
+        // Fallback to local storage
+        const localPoints = getLocalPoints();
+        const localAchievements = getLocalAchievements();
+        const localQuizzes = getCompletedQuizzes();
+
+        const quizzesCompleted = localQuizzes.length;
+        const totalQuizScore =
+          quizzesCompleted > 0
+            ? localQuizzes.reduce(
+                (sum: number, quiz: Quiz) => sum + quiz.score,
+                0
+              ) / quizzesCompleted
+            : 0;
+
+        // Calculate subject progress from local storage
+        const progress: Record<string, SubjectProgress> = {};
+        for (const subject of subjects) {
+          const subjectQuizzes = localQuizzes.filter(
+            (quiz: Quiz) => quiz.subject === subject.id
+          );
+
+          // Calculate highest unlocked grade and mastery progress
+          let currentGrade = 6;
+          let highestUnlockedGrade = 6;
+
+          // Check each grade level for mastery
+          while (currentGrade <= 9) {
+            const gradeQuizzes = subjectQuizzes.filter(
+              (quiz: Quiz) => quiz.grade === currentGrade && quiz.score >= 90
+            );
+
+            if (gradeQuizzes.length >= 5) {
+              // Grade is mastered, move to next grade
+              highestUnlockedGrade = currentGrade + 1;
+              currentGrade++;
+            } else {
+              // Grade not mastered, stop here
+              break;
+            }
+          }
+
+          // Calculate mastery progress for highest unlocked grade
+          const highGradeQuizzes = subjectQuizzes.filter(
+            (quiz: Quiz) =>
+              quiz.grade === highestUnlockedGrade && quiz.score >= 90
+          );
+          const masteryProgress = Math.min(
+            (highGradeQuizzes.length / 5) * 100,
+            100
+          );
+
+          // Calculate average score percentage
+          const percentage =
+            subjectQuizzes.length > 0
+              ? subjectQuizzes.reduce(
+                  (sum: number, quiz: Quiz) => sum + quiz.score,
+                  0
+                ) / subjectQuizzes.length
+              : 0;
+
+          progress[subject.id] = {
+            gradeLevel: highestUnlockedGrade,
+            percentage: parseFloat(percentage.toFixed(2)),
+            masteryProgress: parseFloat(masteryProgress.toFixed(2)),
+          };
+        }
+
+        setMetrics({
+          totalQuizScore: parseFloat(totalQuizScore.toFixed(2)),
+          quizzesCompleted,
+          currentStreak: 0, // No streak data in local storage for now
+          achievements: localAchievements.length,
+        });
+        setPoints(localPoints);
+        setSubjectProgress(progress);
       } finally {
         setLoading(false);
       }
@@ -164,9 +292,11 @@ export default function Home() {
           {/* Title and Badge */}
           <div className="flex justify-between items-center mb-[15px]">
             <h2 className="text-[20px] font-bold">Your Learning Journey</h2>
-            <div className="bg-[#F0F4FF] text-[#4361ee] rounded-[16px] px-3 py-[6px] flex items-center text-sm font-medium">
-              <span className="mr-[5px]">⭐</span>
-              <span>350 Points</span>
+            <div className="bg-[#F0F4FF] text-[#4361ee] rounded-[16px] pl-4 pr-[7px] py-[8px] flex items-center">
+              <span className="mr-[8px] text-[15px] pl-[7px]">⭐</span>
+              <span className="text-[13px] font-[700]">
+                {loading || points === null ? "Loading..." : `${points} pts`}
+              </span>
             </div>
           </div>
 
@@ -179,7 +309,7 @@ export default function Home() {
               <p className="text-[13px] text-[#555] mb-[3px]">
                 Total Quiz Score %
               </p>
-              <p className="text-[20px] font-extrabold">
+              <p className="text-[20px] font-[700]">
                 {loading ? "Loading..." : `${metrics.totalQuizScore}%`}
               </p>
             </div>
@@ -190,7 +320,7 @@ export default function Home() {
               <p className="text-[13px] text-[#555] mb-[3px]">
                 Quizzes Completed
               </p>
-              <p className="text-[20px] font-extrabold">
+              <p className="text-[20px] font-[700]">
                 {loading ? "Loading..." : metrics.quizzesCompleted}
               </p>
             </div>
@@ -199,7 +329,7 @@ export default function Home() {
                 <Flame className="w-[16px] h-[16px] text-[white]" />
               </div>
               <p className="text-[13px] text-[#555] mb-[3px]">Current Streak</p>
-              <p className="text-[20px] font-extrabold">
+              <p className="text-[20px] font-[700]">
                 {loading
                   ? "Loading..."
                   : `${metrics.currentStreak} day${
@@ -212,7 +342,7 @@ export default function Home() {
                 <Award className="w-[16px] h-[16px] text-[white]" />
               </div>
               <p className="text-[13px] text-[#555] mb-[3px]">Achievements</p>
-              <p className="text-[20px] font-extrabold">
+              <p className="text-[20px] font-[700]">
                 {loading ? "Loading..." : metrics.achievements}
               </p>
             </div>
@@ -227,6 +357,7 @@ export default function Home() {
               const progressData = subjectProgress[subject.id] || {
                 gradeLevel: 6,
                 percentage: 0,
+                masteryProgress: 0,
               };
               const progress = progressData.percentage;
               const letterGrade =
@@ -253,32 +384,48 @@ export default function Home() {
                       width: "100%",
                     }}
                   >
-                    <Icon
-                      className={`w-[18px] h-[18px] ${subject.iconColor} mb-[8px]`}
-                    />
-                    <h3
-                      className="text-[16px] font-semibold"
-                      style={{ fontWeight: 600 }}
-                    >
-                      {subject.name}
-                    </h3>
-                    <p className="text-[13px] text-[#666] mb-[8px]">
-                      {subject.subtitle}
-                    </p>
+                    {/* Top section with icon/title and percentage */}
+                    <div className="flex justify-between items-start mb-[8px]">
+                      <div>
+                        <Icon
+                          className={`w-[18px] h-[18px] ${subject.iconColor} mb-[8px]`}
+                        />
+                        <h3 className="text-[16px] font-[600]">
+                          {subject.name}
+                        </h3>
+                        <p className="text-[13px] text-[#666]">
+                          {subject.subtitle}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[16px] font-[700]">{progress}%</p>
+                        <p className="text-[14px] text-[#666] font-[800] text-center">
+                          {letterGrade}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Progress bar and grade info */}
                     <div className="h-[6px] bg-[#eee] rounded-[3px] overflow-hidden mb-[5px]">
                       <div
                         className={`h-full ${subject.progressColor}`}
                         style={{
-                          width: `${progress}%`,
+                          width: `${progressData.masteryProgress}%`,
                         }}
                       ></div>
                     </div>
-                    <p className="text-[12px] text-[#666] text-right mb-[5px]">
-                      {progress}% Complete
-                    </p>
+                    <div className="flex justify-between items-center mb-[5px]">
+                      <p className="text-[10px] text-[#666] text-left">
+                        <span className="font-[700]">Mastery:</span>{" "}
+                        {5 - Math.floor(progressData.masteryProgress / 20)} more
+                        to unlock {progressData.gradeLevel + 1}th grade
+                      </p>
+                      <p className="text-[10px] text-[#666] text-right">
+                        {progressData.masteryProgress}% Complete
+                      </p>
+                    </div>
                     <p className="text-[12px] text-[#666] text-left">
-                      {progressData.gradeLevel}th grade - {progress}% total -{" "}
-                      {letterGrade}
+                      {progressData.gradeLevel}th grade
                     </p>
                   </div>
                 </Link>

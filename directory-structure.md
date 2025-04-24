@@ -83,56 +83,86 @@ grade-skipper/
 
 ## Configuration Files
 
-- next.config.ts
-- package.json
-- tailwind.config.ts
-- tsconfig.json
-- postcss.config.mjs
-- eslint.config.mjs
-- components.json
-- .env.local
+- next.config.js - Next.js configuration
+- next.config.ts - TypeScript configuration for Next.js
+- package.json - Project dependencies and scripts
+- package-lock.json - Lock file for dependencies
+- tailwind.config.ts - Tailwind CSS configuration
+- tsconfig.json - TypeScript configuration
+- postcss.config.mjs - PostCSS configuration
+- eslint.config.mjs - ESLint configuration
+- .eslintrc.json - Additional ESLint rules
+- components.json - UI component configuration
+- .env.local - Environment variables
+- .gitignore - Git ignore rules
+- next-env.d.ts - Next.js TypeScript declarations
 
-## Key Project Updates (April 2025)
+## Documentation Files
 
-1. Added new components:
+- README.md - Project overview and setup instructions
+- directory-structure.md - This file
+- PRD.txt - Product Requirements Document
+- GradeSkipper Comprehensive PRD.txt - Detailed product requirements
+- General Purpose and User Flow.txt - User flow documentation
+- Additional Clarifying questions.txt - Project clarification notes
+- improvement_ideas.txt - Future improvement suggestions
+- supabase-schema.txt - Database schema documentation
 
-   - `Accordion.tsx` - Collapsible content component with answer status visualization
-   - `CalculatorModal.tsx` - Modal for calculator functionality
-   - `ConfirmationModal.tsx` - Modal for user confirmations
-   - `HintModal.tsx` - Modal for displaying hints
-   - `LoadingAnimation.tsx` - Reusable loading animation component
-   - `ProgressBar.tsx` - Progress tracking component
-   - `QuizCard.tsx` - Card component for quiz display
-   - `Charts.tsx` - Reusable chart component for data visualization
+## Key Project Updates (April 2024)
 
-2. Enhanced core functionality:
+1. Enhanced Core Functionality:
 
-   - Added API routes for question generation and management
-   - Improved subject management with `subjects.ts`
-   - Enhanced storage capabilities with `storage.ts`
-   - Added calculator and hint features for quiz assistance
-   - Implemented question validation and correction logic
-   - Added loading states and animations for better UX
-   - Added Supabase integration for data persistence
-   - Added admin dashboard with analytics and data visualization
+   - Improved Supabase integration for data persistence
+   - Added unique ID generation for quiz records
+   - Enhanced quiz completion tracking
+   - Improved error handling and logging
+   - Added fallback to local storage for offline support
 
-3. UI/UX Improvements:
+2. Database and Storage:
 
-   - Consistent modal components for various interactions
-   - Progress tracking for quizzes
-   - Enhanced quiz card design
-   - Improved navigation and layout components
-   - Added visual feedback for quiz answers (green/red shading)
-   - Updated favicon to SVG format
-   - Standardized loading animations across the application
-   - Added responsive charts for data visualization
-   - Added admin interface for monitoring student progress
+   - Added Supabase schema documentation
+   - Improved data consistency with unique IDs
+   - Enhanced quiz tracking and metrics
+   - Added event logging system
 
-4. Development Tools:
-   - Added ESLint configuration
-   - Enhanced TypeScript configuration
-   - Improved PostCSS setup
-   - Added component configuration for UI library integration
-   - Implemented proper error handling and logging
-   - Added debug logging for question explanations and API responses
-   - Added Recharts library for data visualization
+3. Development Tools:
+
+   - Added comprehensive ESLint configuration
+   - Enhanced TypeScript type definitions
+   - Improved build and development configurations
+   - Added debugging tools and logging
+
+4. Documentation:
+   - Updated directory structure
+   - Added comprehensive PRD
+   - Enhanced technical documentation
+   - Added database schema documentation
+
+## Development Guidelines
+
+1. File Organization:
+
+   - Keep related components in the same directory
+   - Use TypeScript for all new files
+   - Follow Next.js 13+ app directory structure
+   - Maintain consistent naming conventions
+
+2. Code Style:
+
+   - Follow ESLint configuration
+   - Use TypeScript for type safety
+   - Document complex functions and components
+   - Maintain consistent formatting
+
+3. Testing:
+
+   - Add unit tests for new components
+   - Test database operations thoroughly
+   - Verify offline functionality
+   - Test error handling scenarios
+
+4. Documentation:
+   - Update documentation with new features
+   - Document database schema changes
+   - Keep README up to date
+   - Document API endpoints

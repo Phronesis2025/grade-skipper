@@ -7,10 +7,25 @@ import ProgressBar from "@/components/ProgressBar";
 import CalculatorModal from "@/components/CalculatorModal";
 import HintModal from "@/components/HintModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { AchievementPopUp } from "@/components/AchievementPopUp";
 import { useState, useEffect, useRef } from "react";
 import { subjects } from "@/lib/subjects";
-import { saveCompletedQuiz } from "@/lib/storage";
+import { saveCompletedQuiz, getLocalPoints } from "@/lib/storage";
 import { v4 as uuidv4 } from "uuid";
+import { calculatePoints } from "@/lib/utils";
+import {
+  checkCorrectInARow,
+  checkMastery,
+  checkStreakBreaker,
+  checkQuizCompletion,
+  getExistingAchievements,
+  AchievementId,
+} from "@/lib/achievements";
+import {
+  updateUserPoints,
+  insertAchievement,
+  updateStreak,
+} from "@/lib/supabase";
 
 // Import static question files
 import readingQuestions from "@/lib/questions/reading-grade6";
@@ -20,6 +35,9 @@ import scienceQuestions from "@/lib/questions/science-grade6";
 import englishQuestions from "@/lib/questions/english-grade6";
 import codingAiQuestions from "@/lib/questions/coding-ai-grade6";
 import logicPuzzlesQuestions from "@/lib/questions/logic-puzzles-grade6";
+
+// Hardcoded user ID for anonymous user (to be replaced with auth later)
+const ANONYMOUS_USER_ID = "123e4567-e89b-12d3-a456-426614174000";
 
 // Interface for raw question format from static files
 interface AnswerExplanations {
@@ -91,6 +109,14 @@ export default function QuizPage() {
     correctAnswer: string;
   } | null>(null);
   const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [correctInARow, setCorrectInARow] = useState(0);
+  const [maxCorrectInARow, setMaxCorrectInARow] = useState(0);
+  const [existingAchievements, setExistingAchievements] = useState<Set<string>>(
+    new Set()
+  );
+  const [newAchievements, setNewAchievements] = useState<
+    { achievementId: AchievementId; name: string }[]
+  >([]);
   const [questions, setQuestions] = useState<ExtendedQuizQuestion[]>([]);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isHintOpen, setIsHintOpen] = useState(false);
@@ -109,6 +135,19 @@ export default function QuizPage() {
     if (typeof window !== "undefined") {
       import("@/lib/supabase").then((mod) => setSupabase(mod.supabase));
     }
+  }, []);
+
+  // Fetch existing achievements on mount
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        const achievements = await getExistingAchievements(ANONYMOUS_USER_ID);
+        setExistingAchievements(achievements);
+      } catch (error) {
+        console.error("Failed to fetch existing achievements:", error);
+      }
+    };
+    fetchAchievements();
   }, []);
 
   // Randomize and select questions
@@ -171,20 +210,35 @@ export default function QuizPage() {
 
         // Insert quiz_attempts
         if (supabase && questionsWithUserAnswer.length > 0) {
-          const { error } = await supabase.from("quiz_attempts").insert([
-            {
-              subject: subjectId,
-              topic: questionsWithUserAnswer[0].topic,
-              grade,
-              completed: false,
-              timestamp: new Date().toISOString(),
-            },
-          ]);
-          if (error) {
-            console.error("Failed to insert quiz_attempts:", error);
-            throw new Error(
-              `Supabase quiz_attempts insert failed: ${error.message}`
-            );
+          const topic = questionsWithUserAnswer[0].topic;
+
+          try {
+            // Use upsert to handle the quiz attempt
+            const { error: upsertError } = await supabase
+              .from("quiz_attempts")
+              .upsert(
+                {
+                  id: ANONYMOUS_USER_ID,
+                  subject: subjectId,
+                  topic: topic,
+                  grade: grade,
+                  completed: false,
+                  timestamp: new Date().toISOString(),
+                },
+                {
+                  onConflict: "id",
+                }
+              );
+
+            if (upsertError) {
+              console.error("Failed to handle quiz attempt:", upsertError);
+              throw new Error(
+                `Failed to handle quiz attempt: ${upsertError.message}`
+              );
+            }
+          } catch (error) {
+            console.error("Error handling quiz attempt:", error);
+            throw error;
           }
         }
       } catch (err) {
@@ -204,14 +258,22 @@ export default function QuizPage() {
 
   // Log state changes
   useEffect(() => {
-    console.log("isCalculatorOpen:", isCalculatorOpen);
-    console.log("isHintOpen:", isHintOpen);
+    if (isCalculatorOpen || isHintOpen) {
+      console.log("isCalculatorOpen:", isCalculatorOpen);
+      console.log("isHintOpen:", isHintOpen);
+    }
   }, [isCalculatorOpen, isHintOpen]);
 
   const currentQuestion = questions[currentQuestionIndex];
-  console.log("Current Question:", currentQuestion);
-  console.log("Questions Array:", questions);
-  console.log("Current Index:", currentQuestionIndex);
+
+  // Only log question data when it exists
+  useEffect(() => {
+    if (currentQuestion) {
+      console.log("Current Question:", currentQuestion);
+      console.log("Questions Array:", questions);
+      console.log("Current Index:", currentQuestionIndex);
+    }
+  }, [currentQuestion, questions, currentQuestionIndex]);
 
   const handleSubmit = () => {
     if (selectedAnswer && currentQuestion) {
@@ -273,8 +335,25 @@ export default function QuizPage() {
         question: currentQuestion.question,
         explanation,
       });
+
       if (isCorrect) {
-        setCorrectAnswers(correctAnswers + 1);
+        setCorrectAnswers((prev) => prev + 1);
+        setCorrectInARow((prev) => prev + 1);
+        setMaxCorrectInARow((prev) => Math.max(prev, correctInARow + 1));
+      } else {
+        setCorrectInARow(0);
+      }
+
+      // Check for in-a-row achievements after each answer
+      const { newAchievements: inARowAchievements } = checkCorrectInARow(
+        isCorrect ? correctInARow + 1 : 0,
+        existingAchievements
+      );
+      if (inARowAchievements.length > 0) {
+        setNewAchievements((prev) => [...prev, ...inARowAchievements]);
+        inARowAchievements.forEach((ach) =>
+          existingAchievements.add(ach.achievementId)
+        );
       }
     }
   };
@@ -296,6 +375,7 @@ export default function QuizPage() {
     const timeSpent = Math.round((Date.now() - startTime) / 1000);
 
     const quiz = {
+      id: uuidv4(), // Generate a unique ID for each quiz
       subject: subjectId,
       topic: questions[0]?.topic || "General",
       grade,
@@ -306,17 +386,67 @@ export default function QuizPage() {
       calculator_used: calculatorUsed,
     };
 
+    // Initialize allNewAchievements early to ensure it's always defined
+    let allNewAchievements: { achievementId: AchievementId; name: string }[] =
+      [];
+
     try {
+      // Check achievements
+      const { newAchievements: inARowAchievements } = checkCorrectInARow(
+        maxCorrectInARow,
+        existingAchievements
+      );
+      const { newAchievements: masteryAchievements } = await checkMastery(
+        ANONYMOUS_USER_ID,
+        subjectId,
+        grade,
+        existingAchievements
+      );
+      const { newAchievements: streakAchievements } = await checkStreakBreaker(
+        ANONYMOUS_USER_ID,
+        existingAchievements
+      );
+      const { newAchievements: quizAchievements } = await checkQuizCompletion(
+        ANONYMOUS_USER_ID,
+        percentage,
+        existingAchievements
+      );
+
+      allNewAchievements = [
+        ...inARowAchievements,
+        ...masteryAchievements,
+        ...streakAchievements,
+        ...quizAchievements,
+      ];
+      setNewAchievements((prev) => [...prev, ...allNewAchievements]);
+
+      // Save achievements to Supabase
+      for (const ach of allNewAchievements) {
+        try {
+          await insertAchievement(ach.achievementId, ach.name);
+          existingAchievements.add(ach.achievementId);
+        } catch (error) {
+          console.error(`Failed to insert achievement ${ach.name}:`, error);
+        }
+      }
+
+      // Calculate points
+      const pointsEarned = calculatePoints(
+        correctAnswers,
+        totalQuestions,
+        allNewAchievements.length
+      );
+      console.log("Points earned from quiz:", pointsEarned); // Log points earned
+
+      // Save quiz data
       if (supabase) {
-        // Insert quiz
+        // Insert quiz as a new record
         const { error: quizError } = await supabase
           .from("quizzes")
           .insert([quiz]);
+
         if (quizError) {
-          console.error("Failed to insert quiz:", quizError);
-          throw new Error(
-            `Supabase quizzes insert failed: ${quizError.message}`
-          );
+          console.warn("Failed to insert quiz:", quizError);
         }
 
         // Update quiz_attempts
@@ -324,19 +454,21 @@ export default function QuizPage() {
           .from("quiz_attempts")
           .update({ completed: true })
           .match({
+            id: ANONYMOUS_USER_ID,
             subject: subjectId,
             topic: quiz.topic,
             grade,
             completed: false,
           });
+
         if (attemptError) {
-          console.error("Failed to update quiz_attempts:", attemptError);
           console.warn("Failed to update quiz_attempts:", attemptError);
         }
 
         // Insert event_log
         const { error: logError } = await supabase.from("event_logs").insert([
           {
+            id: uuidv4(), // Generate a unique ID for each event log
             event_type: "quiz_completed",
             details: {
               subject: subjectId,
@@ -347,29 +479,72 @@ export default function QuizPage() {
             timestamp: new Date().toISOString(),
           },
         ]);
+
         if (logError) {
-          console.error("Failed to insert event_log:", logError);
-          throw new Error(
-            `Supabase event_logs insert failed: ${logError.message}`
-          );
+          console.warn("Failed to insert event_log:", logError);
         }
 
-        const localSuccess = saveCompletedQuiz(quiz);
-        if (!localSuccess) {
-          console.error("Failed to save quiz to local storage");
-          throw new Error("Failed to save to local storage");
+        // Update points
+        try {
+          await updateUserPoints(pointsEarned);
+        } catch (error) {
+          console.error("Failed to update points:", error);
+        }
+
+        // Update streaks
+        try {
+          await updateStreak();
+        } catch (error) {
+          console.error("Failed to update streak:", error);
         }
       }
+
+      // Save to local storage (includes points and achievements)
+      const localSuccess = saveCompletedQuiz(
+        quiz,
+        pointsEarned,
+        allNewAchievements
+      );
+      if (!localSuccess) {
+        console.error("Failed to save quiz to local storage");
+        throw new Error("Failed to save to local storage");
+      }
+
+      // Log local storage points to verify
+      const localPointsAfterSave = getLocalPoints();
+      console.log("Local storage points after save:", localPointsAfterSave);
+
+      // Navigate to results page
+      window.history.pushState(
+        { questions },
+        "",
+        `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`
+      );
+      window.location.href = `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`;
     } catch (error) {
       console.error("Error saving quiz:", error);
-    }
 
-    window.history.pushState(
-      { questions },
-      "",
-      `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`
-    );
-    window.location.href = `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`;
+      // Save to local storage even if Supabase fails
+      const localSuccess = saveCompletedQuiz(quiz, 0, allNewAchievements);
+      if (!localSuccess) {
+        console.error("Failed to save quiz to local storage");
+      }
+
+      // Log local storage points to verify
+      const localPointsAfterSave = getLocalPoints();
+      console.log(
+        "Local storage points after save (error case):",
+        localPointsAfterSave
+      );
+
+      // Navigate to results page
+      window.history.pushState(
+        { questions },
+        "",
+        `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`
+      );
+      window.location.href = `/subject/${subjectId}/results?score=${correctAnswers}&total=${questions.length}`;
+    }
   };
 
   const handleOpenCalculator = () => {
@@ -568,6 +743,15 @@ export default function QuizPage() {
           onConfirm={() => (window.location.href = `/subject/${subjectId}`)}
           message="Are you sure you want to leave the quiz? Your progress will be lost."
         />
+        {newAchievements.map((ach, idx) => (
+          <AchievementPopUp
+            key={idx}
+            achievementName={ach.name}
+            onClose={() =>
+              setNewAchievements((prev) => prev.filter((_, i) => i !== idx))
+            }
+          />
+        ))}
       </div>
     </div>
   );

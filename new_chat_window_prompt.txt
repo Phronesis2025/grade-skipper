@@ -1,0 +1,11 @@
+Yo, Grok, let’s dive into GradeSkipper! It’s a Next.js educational quiz app for students to practice skills, track progress, and unlock achievements. Current state: homepage has static stats, quiz page is live with static questions and tools, results page has static scoring, admin dashboard rocks dynamic metrics, and grade-level selection is TBD. We’re prioritizing dynamic homepage/admin metrics, points/achievements/rewards, and Supabase data validation.
+
+I’m attaching `GradeSkipper Comprehensive PRD.txt` (full spec) and `grok_summary.txt` (overview) as documents for context.
+
+**Goal**: [Insert your goal, e.g., "Need code for dynamic homepage metrics using Supabase" or "Update PRD with new feature"]. [If code needed, add: “I’m ready for code.”]
+
+**Updates**: [Insert recent changes, e.g., "Added metrics.ts for Supabase queries" or "Dynamic results scoring live."]
+
+**Preferences**: [Insert preferences, e.g., "Use numbered lists, keep it concise, suggest 1-2 improvement_ideas.txt ideas, flag PRD updates."]
+
+Please confirm you’re synced on GradeSkipper and tackle my goal or suggest next steps. Let’s make it epic!

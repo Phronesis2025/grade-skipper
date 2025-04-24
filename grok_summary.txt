@@ -1,280 +1,274 @@
-GradeSkipper Project Summary - Updated April 24, 2025
-Project Overview
-Yo, Grok, GradeSkipper’s a Next.js beast, leveling up students with interactive quizzes, progress tracking, and a slick admin dashboard for analytics. Users hit the homepage, pick a subject (Mathematics, Science, etc.), choose a grade (6th-grade only, 7th-9th TBD), smash a quiz, review results, and check stats. Admins scope quiz activity on the admin page. Update (April 2025): Ditched OpenAI for static question files (lib/questions/[subject]-grade6.ts)—fast and furious. Hint/calculator tools are live, progress saves to Supabase (quizzes, progress, quiz_attempts, event_logs, points, achievements, rewards, streaks, streak_freezes) with local storage (storage.ts) as a fallback. Homepage stats are now dynamic, admin metrics are dynamic with one metric tweak pending. Next up: points/achievements/rewards logic, grade-level selection page, and dynamic results scoring. Key features:
+# GradeSkipper Project Summary - Updated April 24, 2025
 
-Homepage: Learning journey stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements), subject progress bars, recommendations. Update (April 2025): Stats are now dynamic, fetched from Supabase (quizzes, streaks, achievements): Total Quiz Score % (average score), Quizzes Completed (count of quizzes), Current Streak (current from streaks), Achievements (count where earned is true). Points still hardcoded at 350, Recommendations hardcoded, both TBD.
-Grade-Level Selection: Pick a grade (6th only for now). Update (April 2025): TBD, no app/subject/[id]/page.tsx.
-Quiz Page: 10 questions (5 for Coding & AI), instant feedback, hints, calculator for Math/Science, Reading passages. Update (April 2025): Static files, tools (HintModal.tsx, CalculatorModal.tsx), ConfirmationModal.tsx live.
-Results Page: Score and question reviews via accordion. Update (April 2025): Static scoring (e.g., 8/10), dynamic questions from history.state, no “Back to Home” modal.
-Admin Page: Analytics dashboard with metrics (Completion Rate, Quiz Times), 30-day charts, quiz/event log tables, quiz deletion. Update (April 2025): Implemented, Average Prompt Time needs swapping (e.g., for Average Hints Used).
-Progress Tracking: Supabase primary, local storage fallback, points/achievements/rewards tables ready, logic TBD.
-Tech Stack: Next.js 13+ (App Router), React, TypeScript, Tailwind CSS, Lucide Icons.
+## Project Overview
+Yo, Grok, GradeSkipper’s a Next.js beast, leveling up students with interactive quizzes, progress tracking, and a slick admin dashboard for analytics. Users hit the homepage, pick a subject (Mathematics, Science, etc.), choose a grade (6th-grade only, 7th-9th TBD), smash a quiz, review results, and check stats. Admins scope quiz activity on the admin page. Update (April 2025): Ditched OpenAI for static question files (lib/questions/[subject]-grade6.ts)—fast and furious. Hint/calculator tools are live, progress saves to Supabase (quizzes, progress, quiz_attempts, event_logs, points, achievements, rewards, streaks, streak_freezes) with local storage (storage.ts) as a fallback. Homepage stats are now dynamic, admin metrics are dynamic with one metric tweak pending. Fixed achievements fetch error on homepage (`invalid input syntax for type timestamp with time zone: "true"`) by using `getExistingAchievements` in `app/page.tsx`. Attempted to fix quiz attempts insert error (`duplicate key value violates unique constraint "quiz_attempts_pkey"`) in quiz page, suggested `upsert` as next step. Next up: points/achievements/rewards logic, grade-level selection page, dynamic results scoring, and quiz attempts fix. Key features:
+
+- **Homepage:** Learning journey stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements), subject progress bars, recommendations. Update (April 2025): Stats are now dynamic, fetched from Supabase (quizzes, streaks, achievements): Total Quiz Score % (average score), Quizzes Completed (count of quizzes), Current Streak (current from streaks), Achievements (count where earned is not null). Points still hardcoded at 350, Recommendations hardcoded, both TBD.
+- **Grade-Level Selection:** Pick a grade (6th only for now). Update (April 2025): TBD, no app/subject/[id]/page.tsx.
+- **Quiz Page:** 10 questions (5 for Coding & AI), instant feedback, hints, calculator for Math/Science, Reading passages. Update (April 2025): Static files, tools (HintModal.tsx, CalculatorModal.tsx), ConfirmationModal.tsx live. Attempted fix for quiz attempts insert error, persists.
+- **Results Page:** Score and question reviews via accordion. Update (April 2025): Static scoring (e.g., 8/10), dynamic questions from history.state, no “Back to Home” modal.
+- **Admin Page:** Analytics dashboard with metrics (Completion Rate, Quiz Times), 30-day charts, quiz/event log tables, quiz deletion. Update (April 2025): Implemented, Average Prompt Time needs swapping (e.g., for Average Hints Used).
+- **Progress Tracking:** Supabase primary, local storage fallback, points/achievements/rewards tables ready, logic TBD.
+- **Tech Stack:** Next.js 13+ (App Router), React, TypeScript, Tailwind CSS, Lucide Icons.
 
 The app’s responsive, accessible (keyboard nav, 48x48px touch targets), and clean. Pause after big moves to sync this summary and PRD with me, Grok—keeps the dev squad locked in.
-Project Structure
+
+## Project Structure
 GradeSkipper’s rocking a Next.js App Router setup, Grok. File lineup:
 
-app/page.tsx: Homepage, dynamic stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress) via Supabase, Points and Recommendations TBD.
-app/subject/[id]/page.tsx: Grade-level selection. Update (April 2025): TBD.
-app/subject/[id]/quiz/[grade]/page.tsx: Quiz page, fully live with static questions, tools, Supabase saves.
-app/subject/[id]/results/page.tsx: Results page, static scores, dynamic questions.
-app/admin/page.tsx: Admin dashboard, metrics, charts, tables, quiz deletion. Update (April 2025): Fully implemented, robust Supabase error handling (e.g., PGRST116 checks).
-app/admin/Charts.tsx: Reusable chart component for admin page (LineChart, BarChart). Update (April 2025): Added for modularity.
-app/api/questions/route.ts: Old OpenAI route. Update (April 2025): Deprecated, delete it.
-components/layout/Navbar.tsx: Sticky navbar (white, “GradeSkipper” with 🎓, #4361ee, Amelia’s avatar).
-components/CustomLink.tsx: Scroll-to-top link.
-components/QuizCard.tsx: Question card with radio buttons, feedback, passages.
-components/ProgressBar.tsx: Black progress bar.
-components/HintModal.tsx: Hint modal, static hints or “No hint available” (white, border-2 #4361ee).
-components/CalculatorModal.tsx: Calculator for Math/Science, digits/operators (same modal style).
-components/ConfirmationModal.tsx: Quiz exit confirmation (“Are you sure you want to leave?”).
-components/Accordion.tsx: Results accordion, shades correct (#CADDCA)/incorrect (#F0CACA), assumes passage support.
-components/LoadingAnimation.tsx: Old book loader. Update (April 2025): Deprecated, swapped for “Loading questions...”.
-app/globals.css: Tailwind CSS, custom styles.
-lib/questions/: Static question files:
-reading-grade6.ts: 15 questions (Comprehension, missing 85 for 100 across 5 topics).
-history-grade6.ts: 32 questions (missing 68 for 100 across 5 topics).
-mathematics-grade6.ts, science-grade6.ts, english-grade6.ts, coding-ai-grade6.ts, logic-puzzles-grade6.ts: Exist, may lack questions (min 10, 5 for Coding-AI).
+- **app/page.tsx:** Homepage, dynamic stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress) via Supabase, Points and Recommendations TBD. Update (April 2025): Fixed achievements fetch error using `getExistingAchievements`.
+- **app/subject/[id]/page.tsx:** Grade-level selection. Update (April 2025): TBD.
+- **app/subject/[id]/quiz/[grade]/page.tsx:** Quiz page, fully live with static questions, tools, Supabase saves. Update (April 2025): Attempted fix for quiz attempts insert error, suggested `upsert`.
+- **app/subject/[id]/results/page.tsx:** Results page, static scores, dynamic questions.
+- **app/admin/page.tsx:** Admin dashboard, metrics, charts, tables, quiz deletion. Update (April 2025): Fully implemented, robust Supabase error handling (e.g., PGRST116 checks).
+- **app/admin/Charts.tsx:** Reusable chart component for admin page (LineChart, BarChart). Update (April 2025): Added for modularity.
+- **app/api/questions/route.ts:** Old OpenAI route. Update (April 2025): Deprecated, delete it.
+- **components/layout/Navbar.tsx:** Sticky navbar (white, “GradeSkipper” with 🎓, #4361ee, Amelia’s avatar).
+- **components/CustomLink.tsx:** Scroll-to-top link.
+- **components/QuizCard.tsx:** Question card with radio buttons, feedback, passages.
+- **components/ProgressBar.tsx:** Black progress bar.
+- **components/HintModal.tsx:** Hint modal, static hints or “No hint available” (white, border-2 #4361ee).
+- **components/CalculatorModal.tsx:** Calculator for Math/Science, digits/operators (same modal style).
+- **components/ConfirmationModal.tsx:** Quiz exit confirmation (“Are you sure you want to leave?”).
+- **components/Accordion.tsx:** Results accordion, shades correct (#CADDCA)/incorrect (#F0CACA), assumes passage support.
+- **components/LoadingAnimation.tsx:** Old book loader. Update (April 2025): Deprecated, swapped for “Loading questions...”.
+- **app/globals.css:** Tailwind CSS, custom styles.
+- **lib/questions/:** Static question files:
+  - **reading-grade6.ts:** 15 questions (Comprehension, missing 85 for 100 across 5 topics).
+  - **history-grade6.ts:** 32 questions (missing 68 for 100 across 5 topics).
+  - **mathematics-grade6.ts, science-grade6.ts, english-grade6.ts, coding-ai-grade6.ts, logic-puzzles-grade6.ts:** Exist, may lack questions (min 10, 5 for Coding-AI).
+- **lib/storage.ts:** Saves completedQuizzes, subjectProgress, points, achievements (partial), fallback for Supabase.
+- **lib/subjects.ts:** Subjects (Mathematics, Reading, Science, History, English, Coding & AI, Logic Puzzles) with metadata.
+- **lib/types.ts:** TypeScript interfaces (Progress, Question, Subject).
+- **lib/supabase.ts:** Supabase client config.
+- **public/:** Assets (amelia.png, subject icons).
 
+## Comprehensive PRD Reference
+GradeSkipper Comprehensive PRD.txt (v3.6, April 24, 2025) is the holy grail, Grok. Covers user flows, functional requirements, tech specs, storage, accessibility, dev plans. Key sections:
 
-lib/storage.ts: Saves completedQuizzes, subjectProgress, points, achievements (partial), fallback for Supabase.
-lib/subjects.ts: Subjects (Mathematics, Reading, Science, History, English, Coding & AI, Logic Puzzles) with metadata.
-lib/types.ts: TypeScript interfaces (Progress, Question, Subject).
-lib/supabase.ts: Supabase client config.
-public/: Assets (amelia.png, subject icons).
-
-Comprehensive PRD Reference
-GradeSkipper Comprehensive PRD.txt (v3.5, April 24, 2025) is the holy grail, Grok. Covers user flows, functional requirements, tech specs, storage, accessibility, dev plans. Key sections:
-
-User Journey (2.1–2.7): Homepage, grade selection (TBD), quiz, results, admin.
-Functional Requirements (3): Page features, data, interactions.
-Technical Specifications (4): Architecture, storage, tools, accessibility.
-Development Plan (9): Phases, tasks, statuses.
+- **User Journey (2.1–2.7):** Homepage, grade selection (TBD), quiz, results, admin.
+- **Functional Requirements (3):** Page features, data, interactions.
+- **Technical Specifications (4):** Architecture, storage, tools, accessibility.
+- **Development Plan (9):** Phases, tasks, statuses.
 
 Sync this summary and PRD after big changes—hit me up to keep ‘em fresh.
-Implemented Features and UI Improvements
-Homepage Layout Enhancements (Phase 0)
-Learning Journey Section:
 
-White card (rounded-[16px], p-[25px], shadow-[0_1px_2px_rgba(0,0,0,0.03)]).
-Stats cards (flex-row, gap-[15px], max-[640px]:grid-cols-2): Total Quiz Score % (bg-[#f0f4ff]), Quizzes Completed (bg-[#ecfdf5]), Current Streak (bg-[#f5f3ff]), Achievements (bg-[#fff7ed]). Update (April 2025): Now dynamic via Supabase: Total Quiz Score % (average score), Quizzes Completed (count of quizzes), Current Streak (current from streaks), Achievements (count where earned is true).
-Points badge (“⭐ 350 Points”, bg-[#F0F4FF], text-[#4361ee]), still hardcoded, TBD.
+## Implemented Features and UI Improvements
 
-Subject Cards:
+### Homepage Layout Enhancements (Phase 0)
 
-Grid (grid-cols-3, gap-[15px], max-[768px]:grid-cols-2, max-[640px]:grid-cols-1).
-White cards (rounded-[10px], p-[15px], h-[175px], shadow-[0_1px_2px_rgba(0,0,0,0.03)]).
-Update (April 2025): Dynamic progress: Grade Level (most recent grade from quizzes, default 6th), Percentage (average score per subject, default 0%), Letter Grades (A: 90%+, B: 80–89%, C: 70–79%, D: 60–69%, F: <60%).
-Logic Puzzles card centered.
+#### Learning Journey Section:
+- White card (rounded-[16px], p-[25px], shadow-[0_1px_2px_rgba(0,0,0,0.03)]).
+- Stats cards (flex-row, gap-[15px], max-[640px]:grid-cols-2): Total Quiz Score % (bg-[#f0f4ff]), Quizzes Completed (bg-[#ecfdf5]), Current Streak (bg-[#f5f3ff]), Achievements (bg-[#fff7ed]). Update (April 2025): Now dynamic via Supabase: Total Quiz Score % (average score), Quizzes Completed (count of quizzes), Current Streak (current from streaks), Achievements (count where earned is not null).
+- Points badge (“⭐ 350 Points”, bg-[#F0F4FF], text-[#4361ee]), still hardcoded, TBD.
 
-Recommended Next Steps:
+#### Subject Cards:
+- Grid (grid-cols-3, gap-[15px], max-[768px]:grid-cols-2, max-[640px]:grid-cols-1).
+- White cards (rounded-[10px], p-[15px], h-[175px], shadow-[0_1px_2px_rgba(0,0,0,0.03)]).
+- Update (April 2025): Dynamic progress: Grade Level (most recent grade from quizzes, default 6th), Percentage (average score per subject, default 0%), Letter Grades (A: 90%+, B: 80–89%, C: 70–79%, D: 60–69%, F: <60%).
+- Logic Puzzles card centered.
 
-Two cards (flex-row, gap-[15px], max-[640px]:flex-col, bg-[#F0F7FF] Math, bg-[#ECFDF5] Reading).
-Hardcoded (“Practice Fractions”, “Reading Challenge”), dynamic TBD.
-Icons (24x24px), titles (text-[15px]), sub-headers (text-[13px] text-[#555]).
+#### Recommended Next Steps:
+- Two cards (flex-row, gap-[15px], max-[640px]:flex-col, bg-[#F0F7FF] Math, bg-[#ECFDF5] Reading).
+- Hardcoded (“Practice Fractions”, “Reading Challenge”), dynamic TBD.
+- Icons (24x24px), titles (text-[15px]), sub-headers (text-[13px] text-[#555]).
 
-Footer:
+#### Footer:
+- Update (April 2025): Footer text (“© 2025 GradeSkipper. Made by Dad.”) now links to /admin, styled with no-underline and text-[#666].
 
-Update (April 2025): Footer text (“© 2025 GradeSkipper. Made by Dad.”) now links to /admin, styled with no-underline and text-[#666].
+#### General UI:
+- White cards, shadows, rounded corners.
+- No sticky footer on mobile.
 
-General UI:
+### Profile Integration (Phase 0)
+- Navbar with Amelia’s avatar (amelia.png, 32x32px), alt text, no placeholder BG.
 
-White cards, shadows, rounded corners.
-No sticky footer on mobile.
+### Grade-Level Selection Page (Phase 1)
+- **Route:** app/subject/[id]/page.tsx (e.g., /subject/science).
+- **Status:** Update (April 2025): TBD. Expected:
+  - Subject title (“Science”, text-[24px] font-bold).
+  - Subtitle: “Please select a grade level to start the quiz” (text-[16px] text-[#666]).
+  - Radio buttons (6th–9th, 7th–9th disabled, tooltips: “Master 6th grade to unlock”).
+  - “Start Quiz” (bg-[#4361ee], text-white, rounded-[6px], px-[16px] py-[8px]) to /subject/[id]/quiz/[grade].
+  - “Back to Home” (top-right, same style) to /.
+  - UI: White card, max-w-[400px], p-[10px] (temporary), #F9FAFB BG.
 
-Profile Integration (Phase 0)
+### Quiz Page (Phase 2 & 4)
+- **Route:** app/subject/[id]/quiz/[grade]/page.tsx (e.g., /subject/science/quiz/6).
+- **Features:** Update (April 2025): Fully implemented:
+  - Subject title (“Science”, text-[24px] font-bold), grade (text-[14px] text-[#555]), progress bar (#333, h-[6px]).
+  - Question card (QuizCard.tsx): Question (e.g., “What is 24/32 simplified?”), 4 options (radio buttons, bg-[#F5F5F5], blue on select: #E0E7FF), or 2 for True/False. Reading passages (3-5 sentences, bg-[#F5F5F5], rounded-[6px]).
+  - Feedback: “Submit Answer” (bg-[#4361ee], disabled until selection) shows green check (correct) or red X (incorrect, green check on correct), explanations from static files’ correctAnswerExplanation/incorrectAnswersExplanation (e.g., “Golgi Apparatus packages proteins, not energy”).
+  - Navigation: “Next Question” or “Finish Quiz” (to results with ?score=8&total=10).
+  - “Back to [Subject]” (top-right, bg-[#4361ee]) triggers ConfirmationModal.tsx (“Are you sure you want to leave the quiz?”).
+  - **Tools:**
+    - Hint (HintModal.tsx): Static hint (text-[16px] text-[#555], bg-[#F5F5F5]) or “No hint available” (white modal, rounded-[12px], border-2 #4361ee).
+    - Calculator (CalculatorModal.tsx): Math/Science, digits (0-9), operators (+, -, *, /), equals, clear (styled buttons, handles division by zero).
+  - Loading: “Loading questions...” (text-[16px] text-[#555]).
+  - Errors: “No quiz available” (text-[16px] text-red-600) with “Back to [Subject]”.
+  - Storage: Supabase (quizzes, quiz_attempts, event_logs), local storage (saveCompletedQuiz), tracks score, time_spent, hints_used, calculator_used. Update (April 2025): Attempted fix for quiz attempts insert error, suggested `upsert`.
+- **UI Improvements:**
+  - Max-w-[800px], p-[10px] (temporary), no scrollbar on desktop.
+  - Responsive: Buttons stack, progress bar adjusts (max-sm:flex-col).
+  - No footer, matches homepage.
+  - Navbar padding reduced (pt-[5px]).
 
-Navbar with Amelia’s avatar (amelia.png, 32x32px), alt text, no placeholder BG.
+### Results Page (Phase 3)
+- **Route:** app/subject/[id]/results/page.tsx (e.g., /subject/science/results).
+- **Features:** Update (April 2025): Partially implemented:
+  - Subject title (“Science”), static score (“Score: 8/10 Correct”, “80%”, from query params).
+  - Accordion (Accordion.tsx): Questions, user answer, correct answer, explanation (bg-[#CADDCA] correct, bg-[#F0CACA] incorrect, bg-[#F5F5F5] content). Assumes passage support (TBD).
+  - Buttons: “Retake Quiz” (if <100%, to /subject/[id]/quiz/6), “Back to [Subject]” (to /subject/[id]), “Back to Home” (to /, no modal).
+  - UI: #F0F1F2 BG, white card, max-w-[800px], p-[10px] (temporary), buttons stack on mobile (max-sm:flex-col).
 
-Grade-Level Selection Page (Phase 1)
-Route: app/subject/[id]/page.tsx (e.g., /subject/science).Status: Update (April 2025): TBD. Expected:
+### Admin Page (Phase 4)
+- **Route:** app/admin/page.tsx.
+- **Features:** Update (April 2025): Fully implemented:
+  - Title: “Quiz Metrics” (text-[20px] font-bold, mb-[15px]).
+  - **Metrics** (flex-row, gap-[15px], max-[640px]:grid-cols-2, rounded-[16px], p-[25px]):
+    - Quiz Completion Rate: (Completed quizzes / Total attempts) * 100 (bg-[#f0f4ff]).
+    - Total Quiz Time: Sum time_spent (minutes, bg-[#ecfdf5]).
+    - Average Quiz Time: Total Quiz Time / Total quizzes (bg-[#f5f3ff]).
+    - Average Prompt Time: From event_logs (prompt_successful/prompt_failed, seconds, bg-[#fff7ed]). Note: Deprecated, replace with Average Hints Used or Average Score per Subject.
+  - **Charts** (white card, rounded-[16px], p-[25px], Recharts, SSR-disabled):
+    - Time Spent per Day (seconds, LineChart, height: 300px, stroke: #4361ee).
+    - Quizzes Completed per Day (count, BarChart, height: 300px, fill: #4361ee).
+    - Summaries: “Data points: X”, “Total time spent: Y seconds” or “Total quizzes: Z” (text-sm text-gray-500).
+    - Loading: “Loading charts...” (text-[16px] text-[#555]).
+    - No data: “No quiz data available for the last 30 days” (text-[16px] text-[#555]).
+  - **Quizzes Table** (white card, rounded-[16px], p-[25px], overflow-x-auto):
+    - Columns: Checkbox, Time, Date, Subject, Score, Time Spent, Hints Used, Calculator (text-[14px] text-[#333]).
+    - Sortable (timestamp, subject, score, time_spent, hints_used, calculator_used, ↑/↓, hover: text-[#1e40af]).
+    - Rows alternate (bg-white, bg-[#F9FAFB]), hover (bg-[#E0E7FF]).
+    - “Delete Selected” (bg-[#dc2626], disabled if no selection).
+  - **Event Logs Table** (same style):
+    - Columns: Time, Event Type, Details (JSON, text-[14px] text-[#333]).
+    - Sortable (timestamp, event_type).
+  - Toasts (react-toastify, top-right, autoClose: 3000ms, bg-[#F0F4FF], text-[#4361ee]): Success (“Quizzes deleted!”), errors (“Failed to load”).
+  - Data: Fetches Supabase quizzes, quiz_attempts, event_logs with robust error handling (e.g., PGRST116 checks, table existence warnings).
 
-Subject title (“Science”, text-[24px] font-bold).
-Subtitle: “Please select a grade level to start the quiz” (text-[16px] text-[#666]).
-Radio buttons (6th–9th, 7th–9th disabled, tooltips: “Master 6th grade to unlock”).
-“Start Quiz” (bg-[#4361ee], text-white, rounded-[6px], px-[16px] py-[8px]) to /subject/[id]/quiz/[grade].
-“Back to Home” (top-right, same style) to /.
-UI: White card, max-w-[400px], p-[10px] (temporary), #F9FAFB BG.
+### Static Question Files (Phase 4)
+- **Features:** Update (April 2025): Primary source, all subjects:
+  - **Reading (reading-grade6.ts):** 15 questions (Comprehension, missing 85 for 100 across Comprehension, Vocabulary, Analysis, Grammar, Figurative Language). Issues: Missing 5 Comprehension, all Medium (need 10 Medium, 10 Hard), some links need login (teacherspayteachers.com).
+  - **History (history-grade6.ts):** 32 questions (5 Ancient Civilizations, 9 Middle Ages, 9 World History, 9 US History, 4 Geography, missing 68 for 100). Issues: Difficulty off (20 Medium, 12 Hard; need 50 Medium, 50 Hard), explanations expanded.
+  - **Others:** Mathematics, Science, English, Coding-AI, Logic Puzzles exist, may lack questions (min 10, 5 for Coding-AI, ideally 100).
+  - Includes passage for Reading comprehension, hint, correctAnswerExplanation, incorrectAnswersExplanation.
 
-Quiz Page (Phase 2 & 4)
-Route: app/subject/[id]/quiz/[grade]/page.tsx (e.g., /subject/science/quiz/6).Features: Update (April 2025): Fully implemented:
+### Storage (Phase 4)
+- **Features:** Update (April 2025): Implemented:
+  - **Supabase (supabase.ts):** Tables (quizzes, progress, quiz_attempts, event_logs, points, achievements, streaks, rewards, streak_freezes) store quiz results, progress, metrics. Indexed for performance. Update (April 2025): Primary source for homepage stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress) and admin page metrics. Fixed achievements fetch error by querying `earned` as timestamp.
+  - **Local Storage (storage.ts):** Saves completedQuizzes, subjectProgress, points, achievements (partial). Update (April 2025): Now a fallback for Supabase.
+  - Tracks time_spent, hints_used, calculator_used.
+  - Admin page and homepage fetch quizzes, quiz_attempts, event_logs, streaks, achievements for dynamic metrics/charts.
 
-Subject title (“Science”, text-[24px] font-bold), grade (text-[14px] text-[#555]), progress bar (#333, h-[6px]).
-Question card (QuizCard.tsx): Question (e.g., “What is 24/32 simplified?”), 4 options (radio buttons, bg-[#F5F5F5], blue on select: #E0E7FF), or 2 for True/False. Reading passages (3-5 sentences, bg-[#F5F5F5], rounded-[6px]).
-Feedback: “Submit Answer” (bg-[#4361ee], disabled until selection) shows green check (correct) or red X (incorrect, green check on correct), explanations from static files’ correctAnswerExplanation/incorrectAnswersExplanation (e.g., “Golgi Apparatus packages proteins, not energy”).
-Navigation: “Next Question” or “Finish Quiz” (to results with ?score=8&total=10).
-“Back to [Subject]” (top-right, bg-[#4361ee]) triggers ConfirmationModal.tsx (“Are you sure you want to leave the quiz?”).
-Tools:
-Hint (HintModal.tsx): Static hint (text-[16px] text-[#555], bg-[#F5F5F5]) or “No hint available” (white modal, rounded-[12px], border-2 #4361ee).
-Calculator (CalculatorModal.tsx): Math/Science, digits (0-9), operators (+, -, *, /), equals, clear (styled buttons, handles division by zero).
-
-
-Loading: “Loading questions...” (text-[16px] text-[#555]).
-Errors: “No quiz available” (text-[16px] text-red-600) with “Back to [Subject]”.
-Storage: Supabase (quizzes, quiz_attempts, event_logs), local storage (saveCompletedQuiz), tracks score, time_spent, hints_used, calculator_used.
-
-UI Improvements:
-
-Max-w-[800px], p-[10px] (temporary), no scrollbar on desktop.
-Responsive: Buttons stack, progress bar adjusts (max-sm:flex-col).
-No footer, matches homepage.
-Navbar padding reduced (pt-[5px]).
-
-Results Page (Phase 3)
-Route: app/subject/[id]/results/page.tsx (e.g., /subject/science/results).Features: Update (April 2025): Partially implemented:
-
-Subject title (“Science”), static score (“Score: 8/10 Correct”, “80%”, from query params).
-Accordion (Accordion.tsx): Questions, user answer, correct answer, explanation (bg-[#CADDCA] correct, bg-[#F0CACA] incorrect, bg-[#F5F5F5] content). Assumes passage support (TBD).
-Buttons: “Retake Quiz” (if <100%, to /subject/[id]/quiz/6), “Back to [Subject]” (to /subject/[id]), “Back to Home” (to /, no modal).
-UI: #F0F1F2 BG, white card, max-w-[800px], p-[10px] (temporary), buttons stack on mobile (max-sm:flex-col).
-
-Admin Page (Phase 4)
-Route: app/admin/page.tsx.Features: Update (April 2025): Fully implemented:
-
-Title: “Quiz Metrics” (text-[20px] font-bold, mb-[15px]).
-Metrics (flex-row, gap-[15px], max-[640px]:grid-cols-2, rounded-[16px], p-[25px]):
-Quiz Completion Rate: (Completed quizzes / Total attempts) * 100 (bg-[#f0f4ff]).
-Total Quiz Time: Sum time_spent (minutes, bg-[#ecfdf5]).
-Average Quiz Time: Total Quiz Time / Total quizzes (bg-[#f5f3ff]).
-Average Prompt Time: From event_logs (prompt_successful/prompt_failed, seconds, bg-[#fff7ed]). Note: Deprecated, replace with Average Hints Used or Average Score per Subject.
-
-
-Charts (white card, rounded-[16px], p-[25px], Recharts, SSR-disabled):
-Time Spent per Day (seconds, LineChart, height: 300px, stroke: #4361ee).
-Quizzes Completed per Day (count, BarChart, height: 300px, fill: #4361ee).
-Summaries: “Data points: X”, “Total time spent: Y seconds” or “Total quizzes: Z” (text-sm text-gray-500).
-Loading: “Loading charts...” (text-[16px] text-[#555]).
-No data: “No quiz data available for the last 30 days” (text-[16px] text-[#555]).
-
-
-Quizzes Table (white card, rounded-[16px], p-[25px], overflow-x-auto):
-Columns: Checkbox, Time, Date, Subject, Score, Time Spent, Hints Used, Calculator (text-[14px] text-[#333]).
-Sortable (timestamp, subject, score, time_spent, hints_used, calculator_used, ↑/↓, hover: text-[#1e40af]).
-Rows alternate (bg-white, bg-[#F9FAFB]), hover (bg-[#E0E7FF]).
-“Delete Selected” (bg-[#dc2626], disabled if no selection).
-
-
-Event Logs Table (same style):
-Columns: Time, Event Type, Details (JSON, text-[14px] text-[#333]).
-Sortable (timestamp, event_type).
-
-
-Toasts (react-toastify, top-right, autoClose: 3000ms, bg-[#F0F4FF], text-[#4361ee]): Success (“Quizzes deleted!”), errors (“Failed to load”).
-Data: Fetches Supabase quizzes, quiz_attempts, event_logs with robust error handling (e.g., PGRST116 checks, table existence warnings).
-
-Static Question Files (Phase 4)
-Features: Update (April 2025): Primary source, all subjects:
-
-Reading (reading-grade6.ts): 15 questions (Comprehension, missing 85 for 100 across Comprehension, Vocabulary, Analysis, Grammar, Figurative Language). Issues: Missing 5 Comprehension, all Medium (need 10 Medium, 10 Hard), some links need login (teacherspayteachers.com).
-History (history-grade6.ts): 32 questions (5 Ancient Civilizations, 9 Middle Ages, 9 World History, 9 US History, 4 Geography, missing 68 for 100). Issues: Difficulty off (20 Medium, 12 Hard; need 50 Medium, 50 Hard), explanations expanded.
-Others: Mathematics, Science, English, Coding-AI, Logic Puzzles exist, may lack questions (min 10, 5 for Coding-AI, ideally 100).
-Includes passage for Reading comprehension, hint, correctAnswerExplanation, incorrectAnswersExplanation.
-
-Storage (Phase 4)
-Features: Update (April 2025): Implemented:
-
-Supabase (supabase.ts): Tables (quizzes, progress, quiz_attempts, event_logs, points, achievements, streaks, rewards, streak_freezes) store quiz results, progress, metrics. Indexed for performance. Update (April 2025): Primary source for homepage stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress) and admin page metrics.
-Local Storage (storage.ts): Saves completedQuizzes, subjectProgress, points, achievements (partial). Update (April 2025): Now a fallback for Supabase.
-Tracks time_spent, hints_used, calculator_used.
-Admin page and homepage fetch quizzes, quiz_attempts, event_logs, streaks, achievements for dynamic metrics/charts.
-
-Current State
+## Current State
 GradeSkipper’s user journey is solid, Grok:
 
-Homepage: Dynamic stats via Supabase: Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress (Grade Level, Percentage, Letter Grades). Points (350) and Recommendations (“Practice Fractions”, “Reading Challenge”) still hardcoded, TBD.
-Grade-Level Selection: TBD.
-Quiz Page: Fully live, static questions, passages, tools, Supabase/local storage.
-Results Page: Static scores, dynamic questions, passage rendering TBD.
-Admin Page: Live, dynamic metrics (Completion Rate, Quiz Times, charts), Average Prompt Time needs replacement.
-Points/Achievements/Rewards: Tables exist, logic TBD, prioritized.
-Static Files: Reading (15 questions), History (32), others exist, need completion.
+- **Homepage:** Dynamic stats via Supabase: Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress (Grade Level, Percentage, Letter Grades). Points (350) and Recommendations (“Practice Fractions”, “Reading Challenge”) still hardcoded, TBD.
+- **Grade-Level Selection:** TBD.
+- **Quiz Page:** Fully live, static questions, passages, tools, Supabase/local storage. Update (April 2025): Attempted fix for quiz attempts insert error, persists.
+- **Results Page:** Static scores, dynamic questions, passage rendering TBD.
+- **Admin Page:** Live, dynamic metrics (Completion Rate, Quiz Times, charts), Average Prompt Time needs replacement.
+- **Points/Achievements/Rewards:** Tables exist, logic TBD, prioritized.
+- **Static Files:** Reading (15 questions), History (32), others exist, need completion.
 
-Fixed:
+**Fixed:**
+- Reading passages display (quiz page, assumed in results).
+- Science quiz explanations selection-specific.
+- Loading animation swapped for fallback UI.
+- Quiz page exit confirmation modal.
+- Update (April 2025): Homepage stats now dynamic via Supabase with robust error handling (e.g., PGRST116 checks). Fixed achievements fetch error on homepage.
 
-Reading passages display (quiz page, assumed in results).
-Science quiz explanations selection-specific.
-Loading animation swapped for fallback UI.
-Quiz page exit confirmation modal.
-Update (April 2025): Homepage stats now dynamic via Supabase with robust error handling (e.g., PGRST116 checks).
+**Challenges:**
+- No grade-level selection page.
+- Static results scoring, Points, and Recommendations on homepage.
+- Admin’s Average Prompt Time metric (deprecated).
+- Incomplete question files (Reading: 85 missing, History: 68 missing, others may lack).
+- Quiz attempts insert error (`duplicate key value violates unique constraint "quiz_attempts_pkey"`) persists.
+- TBD Supabase authentication, storage functions for points, achievements, streaks, rewards, streak_freezes, Current/Longest Streak switching logic.
+- Data validation for admin metrics (e.g., missing time_spent).
 
-Challenges:
+**Documentation:** Pause after milestones to update this summary and PRD with me, Grok.
 
-No grade-level selection page.
-Static results scoring, Points, and Recommendations on homepage.
-Admin’s Average Prompt Time metric (deprecated).
-Incomplete question files (Reading: 85 missing, History: 68 missing, others may lack).
-TBD Supabase authentication, storage functions for points, achievements, streaks, rewards, streak_freezes, Current/Longest Streak switching logic.
-Data validation for admin metrics (e.g., missing time_spent).
-
-Documentation: Pause after milestones to update this summary and PRD with me, Grok.
-Next Steps
+## Next Steps
 Let’s crank it, Grok! Priorities:
 
-Points/Achievements/Rewards: Implement logic (+1 per correct, +10 for 90%+ quiz, +25 per achievement; badges like “5 in a Row”; trophies in “Trophy Case”).
-Dynamic Homepage Completion: Implement Points (Supabase points or local storage) and Recommendations (Supabase progress for lowest quiz_scores or local storage <80% topics).
-Admin Metric Replacement: Swap Average Prompt Time for Average Hints Used or Average Score per Subject (Supabase quizzes).
-Grade-Level Selection: Build app/subject/[id]/page.tsx with radio buttons, grade locking.
-Dynamic Results Page: Real score calculation, verify passages in Accordion.tsx.
-Complete Question Files: Add 85 Reading questions, 68 History, ensure 100 for others (50 Medium, 50 Hard). Fix links (e.g., readworks.org).
-Supabase Storage: Add authentication, implement points, achievements, streaks, rewards, streak_freezes. Cap quiz history (e.g., 100 entries).
-Clean Up: Delete app/api/questions/route.ts.
-Polish: ARIA labels, keyboard navigation for homepage Subject Cards and Recommended Next Steps links, mobile responsiveness, Supabase/local storage sync.
-Data Validation: Ensure Supabase data completeness (e.g., time_spent, hints_used), default to 0 for missing values.
+- **Points/Achievements/Rewards:** Implement logic (+1 per correct, +10 for 90%+ quiz, +25 per achievement; badges like “5 in a Row”; trophies in “Trophy Case”).
+- **Dynamic Homepage Completion:** Implement Points (Supabase points or local storage) and Recommendations (Supabase progress for lowest quiz_scores or local storage <80% topics).
+- **Admin Metric Replacement:** Swap Average Prompt Time for Average Hints Used or Average Score per Subject (Supabase quizzes).
+- **Grade-Level Selection:** Build app/subject/[id]/page.tsx with radio buttons, grade locking.
+- **Dynamic Results Page:** Real score calculation, verify passages in Accordion.tsx.
+- **Complete Question Files:** Add 85 Reading questions, 68 History, ensure 100 for others (50 Medium, 50 Hard). Fix links (e.g., readworks.org).
+- **Supabase Storage:** Add authentication, implement points, achievements, streaks, rewards, streak_freezes. Cap quiz history (e.g., 100 entries). Fix quiz attempts insert error with `upsert`.
+- **Clean Up:** Delete app/api/questions/route.ts.
+- **Polish:** ARIA labels, keyboard navigation for homepage Subject Cards and Recommended Next Steps links, mobile responsiveness, Supabase/local storage sync.
+- **Data Validation:** Ensure Supabase data completeness (e.g., time_spent, hints_used), default to 0 for missing values.
 
-Timeline: Update (April 2025): Estimate 1-2 weeks for points/achievements/rewards and grade-level selection, pending implementation.
-Future Improvements
+**Timeline:** Update (April 2025): Estimate 1-2 weeks for points/achievements/rewards, grade-level selection, and quiz attempts fix, pending implementation.
+
+## Future Improvements
 improvement_ideas.txt is the roadmap, Grok:
 
-Virtual Rewards/Trophy Case (High): Graphical trophy display (table exists, prioritized).
-Streak Freeze (High): Preserve streaks with points (table exists).
-Session Data (High): Track time, hints, calculator (implemented).
-Event Logs (High): Analytics (implemented in admin page).
-Quest System, Mini Games, Adaptive Difficulty, Topic Performance (Medium/Low).
+- **Virtual Rewards/Trophy Case (High):** Graphical trophy display (table exists, prioritized).
+- **Streak Freeze (High):** Preserve streaks with points (table exists).
+- **Session Data (High):** Track time, hints, calculator (implemented).
+- **Event Logs (High):** Analytics (implemented in admin page).
+- **Topic Performance (Medium):** Track performance per topic (e.g., Fractions) for user guidance.
+- **Quest System, Mini Games, Adaptive Difficulty (Medium/Low).**
 
-Suggesting Virtual Rewards/Trophy Case to hype engagement with shiny trophies and Streak Freeze to keep users locked in during breaks.
-Assistance Needed
+**Suggesting:** Streak Freeze to keep users engaged during breaks and Topic Performance to guide users toward weaker areas with a homepage or admin page metric.
+
+## Assistance Needed
 Grok, let’s keep it rolling:
 
-Points/Achievements/Rewards: Draft logic, TrophyCase.tsx (wait for “I’m ready for code”).
-Dynamic Homepage Completion: Update app/page.tsx for Points and Recommendations (wait for confirmation).
-Admin Metric Replacement: Update app/admin/page.tsx (wait for confirmation).
-Grade-Level Selection: Draft app/subject/[id]/page.tsx (wait for confirmation).
-Question Files: Generate 85 Reading questions, 68 History, fill others to 100 (50 Medium, 50 Hard). Swap bad links for readworks.org.
-Storage: Finalize Supabase schema, add authentication, implement points/achievements/rewards logic.
-Docs: Remind me to pause and update PRD/summary post-milestones.
+- **Points/Achievements/Rewards:** Draft logic, TrophyCase.tsx (wait for “I’m ready for code”).
+- **Dynamic Homepage Completion:** Update app/page.tsx for Points and Recommendations (wait for confirmation).
+- **Admin Metric Replacement:** Update app/admin/page.tsx (wait for confirmation).
+- **Grade-Level Selection:** Draft app/subject/[id]/page.tsx (wait for confirmation).
+- **Question Files:** Generate 85 Reading questions, 68 History, fill others to 100 (50 Medium, 50 Hard). Swap bad links for readworks.org.
+- **Storage:** Finalize Supabase schema, add authentication, implement points/achievements/rewards logic, fix quiz attempts insert error.
+- **Docs:** Remind me to pause and update PRD/summary post-milestones.
 
-Files provided: supabase.ts, HintModal.tsx, CalculatorModal.tsx, ConfirmationModal.tsx, page.tsx (results, homepage, quiz, admin), supabase-schema.txt, Accordion.tsx, Charts.tsx, improvement_ideas.txt.
-Documentation Maintenance
+**Files provided:** supabase.ts, HintModal.tsx, CalculatorModal.tsx, ConfirmationModal.tsx, page.tsx (results, homepage, quiz, admin), supabase-schema.txt, Accordion.tsx, Charts.tsx, improvement_ideas.txt.
+
+## Documentation Maintenance
 This summary and PRD are the dev bible, Grok. Update ‘em regularly:
 
-Pause for Updates: Pause after milestones (e.g., phase done) to sync docs with me.
-Grok’s Job: Preserve content, list assumptions, flag TBDs, update with files.
-Code/Prompt Rule: No code blocks or Cursor prompts unless I say “I’m ready for code.” No guessing.
-Suggestions: Drop 1-2 improvement_ideas.txt ideas per response (e.g., Virtual Rewards, Streak Freeze).
-Best Practices:
-Version Control: Track versions (e.g., v2.1), log changes with dates/authors.
-Terminology: Stick to “quiz page,” “subject.” Check PRD glossary.
-File Requests: List files with purpose/priority (e.g., “Required: page.tsx for stats”).
-Assumptions: Document and confirm with me.
-Backups: Save docs in Git before big edits.
+- **Pause for Updates:** Pause after milestones (e.g., phase done) to sync docs with me.
+- **Grok’s Job:** Preserve content, list assumptions, flag TBDs, update with files.
+- **Code/Prompt Rule:** No code blocks or Cursor prompts unless I say “I’m ready for code.” No guessing.
+- **Suggestions:** Drop 1-2 improvement_ideas.txt ideas per response (e.g., Streak Freeze, Topic Performance).
+- **Best Practices:**
+  - **Version Control:** Track versions (e.g., v2.2), log changes with dates/authors.
+  - **Terminology:** Stick to “quiz page,” “subject.” Check PRD glossary.
+  - **File Requests:** List files with purpose/priority (e.g., “Required: page.tsx for stats”).
+  - **Assumptions:** Document and confirm with me.
+  - **Backups:** Save docs in Git before big edits.
 
+## Changelog
 
+### Version 2.2 Updates (April 24, 2025):
+- **Project Overview:** Added fixes for achievements fetch error on homepage and attempted quiz attempts insert error fix on quiz page, with `upsert` suggestion. Updated next steps to include quiz attempts fix.
+- **Project Structure:** Noted achievements fetch fix in app/page.tsx and quiz attempts fix attempt in app/subject/[id]/quiz/[grade]/page.tsx.
+- **Homepage Layout Enhancements:** Added details on achievements fetch fix.
+- **Quiz Page:** Added details on quiz attempts insert error fix attempt and `upsert` suggestion.
+- **Storage:** Noted fix for achievements fetch by querying `earned` as timestamp.
+- **Current State:** Added achievements fetch fix and quiz attempts insert error as a challenge.
+- **Next Steps:** Added fixing quiz attempts insert error with `upsert` and updated timeline to include this task.
+- **Future Improvements:** Suggested Streak Freeze and Topic Performance from improvement_ideas.txt.
 
-Changelog
-Version 2.1 Updates (April 24, 2025):
+### Version 2.1 Updates (April 24, 2025):
+- Updated Project Overview to reflect dynamic homepage stats via Supabase, with Points and Recommendations still TBD. Noted next steps focus on points/achievements/rewards, grade-level selection, and dynamic results scoring.
+- Added app/admin/Charts.tsx to Project Structure for reusable chart rendering.
+- Updated Homepage Layout Enhancements to confirm dynamic stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress) and added footer link to /admin.
+- Updated Admin Page features with chart summaries, robust Supabase error handling.
+- Updated Storage to note Supabase as the primary source for homepage and admin metrics, with local storage as a fallback.
+- Updated Current State to reflect dynamic homepage stats and fixed challenges.
+- Adjusted Next Steps to prioritize points/achievements/rewards, dynamic homepage completion (Points, Recommendations), and added timeline (1-2 weeks).
+- Added Charts.tsx to Assistance Needed files.
 
-Updated Project Overview to reflect dynamic homepage stats via Supabase, with Points and Recommendations still TBD. Noted next steps focus on points/achievements/rewards, grade-level selection, and dynamic results scoring.
-Added app/admin/Charts.tsx to Project Structure for reusable chart rendering.
-Updated Homepage Layout Enhancements to confirm dynamic stats (Total Quiz Score %, Quizzes Completed, Current Streak, Achievements, Subject Progress) and added footer link to /admin.
-Updated Admin Page features with chart summaries, robust Supabase error handling.
-Updated Storage to note Supabase as the primary source for homepage and admin metrics, with local storage as a fallback.
-Updated Current State to reflect dynamic homepage stats and fixed challenges.
-Adjusted Next Steps to prioritize points/achievements/rewards, dynamic homepage completion (Points, Recommendations), and added timeline (1-2 weeks).
-Added Charts.tsx to Assistance Needed files.
-
-Version 2.0 Updates (April 23, 2025):
-
-Initial summary with project setup, implemented features (homepage, quiz, results, admin), static question files, storage, and next steps.
-Noted placeholder stats on homepage, TBD grade-level selection, and static results scoring.
+### Version 2.0 Updates (April 23, 2025):
+- Initial summary with project setup, implemented features (homepage, quiz, results, admin), static question files, storage, and next steps.
+- Noted placeholder stats on homepage, TBD grade-level selection, and static results scoring.
 
 Let’s keep GradeSkipper’s docs as dope as its quizzes, Grok!

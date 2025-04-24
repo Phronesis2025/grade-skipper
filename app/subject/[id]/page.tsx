@@ -6,20 +6,6 @@ import { useState, useEffect } from "react";
 import CustomLink from "@/components/CustomLink";
 import { subjects } from "@/lib/subjects";
 
-import { saveCompletedQuiz, getCompletedQuizzes } from "@/lib/storage";
-
-const testQuiz = {
-  subject: "mathematics",
-  topic: "fractions!!",
-  grade: 6,
-  score: 80,
-  timestamp: new Date().toISOString(),
-  time_spent: 600,
-  hints_used: 2,
-  calculator_used: false,
-};
-saveCompletedQuiz(testQuiz);
-console.log(getCompletedQuizzes());
 export default function SubjectPage() {
   // Get the subject ID from the route parameter
   const params = useParams();
@@ -32,6 +18,30 @@ export default function SubjectPage() {
 
   // Set the title from the found subject, or use a fallback
   const title = subject ? subject.name : "Subject Not Found";
+
+  // If subject not found, show an error page
+  if (!subject) {
+    return (
+      <div className="bg-[#F0F1F2] min-h-screen">
+        <div className="max-w-[800px] mx-auto p-[10px]">
+          <div className="bg-white rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-center">
+            <h1 className="text-[24px] font-bold mb-[5px]">
+              Subject Not Found
+            </h1>
+            <p className="text-[16px] text-[#555] mb-[10px]">
+              The subject you are looking for does not exist.
+            </p>
+            <Link
+              href="/"
+              className="bg-[#4361ee] text-white px-[12px] py-[6px] rounded-[6px] text-[14px] font-semibold no-underline"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle radio button change
   const handleGradeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
