@@ -1,0 +1,223 @@
+General
+
+Generate exactly 30 unique multiple-choice quiz questions for 6th-grade [Subject] in a JSON array. The response must be a JSON array of exactly 30 objects, each representing a question with the following fields:
+
+- subject: The subject area (e.g., "Mathematics").
+- topic: The specific topic within the subject (e.g., "Fractions").
+- grade: The grade level (e.g., 6).
+- questionType: "MC" for multiple-choice.
+- question: The question text, appropriate for a 6th-grade student.
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"].
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D").
+- hint: A short, one-sentence hint to guide the student without giving the answer.
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student.
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter).
+- difficulty: "Easy", "Medium", or "Hard" (distribute difficulty levels evenly: 10 Easy, 10 Medium, 10 Hard).
+- learningObjective: The relevant Common Core standard or a general learning goal (e.g., "CCSS.MATH.CONTENT.6.NS.A.1").
+- tags: An array of keywords for categorization (e.g., ["fractions", "arithmetic"]).
+- timeEstimate: Estimated time to solve in seconds (e.g., 60 for a medium-difficulty question).
+- webLink: A URL to a relevant educational resource (e.g., Khan Academy, BBC Bitesize).
+- source: The AI model used to generate the question (e.g., "ChatGPT").
+- lastUpdated: The date of generation in YYYY-MM-DD format (e.g., "2025-04-23").
+
+Ensure questions are unique, educationally accurate, and appropriate for 6th-grade students. Use proper grammar and avoid overly complex vocabulary. Distribute questions across the following topics: [List of topics].
+
+
+MATH
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade Mathematics in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "Mathematics"
+- topic: One of the following topics: "Fractions", "Decimals", "Ratios and Proportions", "Percentages", "Geometry", "Algebra", "Word Problems", "Number Sense", "Data and Statistics", "Integers"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, presenting a clear, solvable mathematical problem that matches the specified topic (e.g., a Fractions question must involve fraction operations like addition or subtraction, not area calculations). Use US-centric examples (e.g., measurements in cups, US sports like baseball, settings in American cities) and themes like dinosaurs, reading, writing, dogs, wolves. Include only 1-2 humorous references (e.g., a pun or silly scenario like "A dog ‘paws-itively’ measures his bone—what’s the fraction?") across all 100 questions for a small amount of humor.
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"], ensuring the options align with the topic (e.g., for Fractions, options should be fractions like "A) 1/4", not areas like "A) 16 ft²")
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer (e.g., "Find a common denominator.")
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student, showing the step-by-step solution (e.g., "First, find a common denominator: 1/2 = 2/4, then add 2/4 + 1/4 = 3/4.")
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter), providing specific feedback (e.g., "A) 1/4 is incorrect because you subtracted instead of adding the fractions.")
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["fractions", "arithmetic"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource directly related to the topic (e.g., for Fractions, use "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-arithmetic-operations/cc-6th-adding-fractions/v/adding-fractions-with-different-denominators"), ensuring the link is working and not behind a paywall
+- source: "ChatGPT"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 10 topics (10 questions per topic). For each topic, ensure 5 questions are Medium and 5 are Hard. Ensure questions are engaging and rich by creating scenarios that involve the specified themes. For example:
+- Fractions: "A dog bakery in New York makes 1/2 a batch of treats and adds 1/4 more for a wolf party—how many batches are made in total?"
+- Geometry: "A T-Rex in a Chicago museum has a rectangular display case with a length of 8 feet and a width of 5 feet—what’s the area?"
+- Word Problems: "During a baseball game in Texas, a player reads that 3/5 of the seats are filled, and 1/4 more fans arrive—how full is the stadium now?"
+
+Validate that each question is not a placeholder (e.g., do not use "This is a sample question") and contains a complete, solvable problem that matches the topic. Ensure all correct answers are mathematically accurate for 6th-grade level. Use proper grammar and avoid overly complex vocabulary.
+
+READING
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade Reading in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "Reading"
+- topic: One of the following topics: "Comprehension", "Vocabulary", "Analysis", "Grammar", "Figurative Language"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, using US-centric examples and themes like dinosaurs, reading, writing, dogs, wolves, with only 1-2 references to Hunger Games, Minecraft, Stardew Valley, or fart humor for a small amount of humor
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"]
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter)
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["comprehension", "reading"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource (e.g., ReadWorks, CommonLit), ensuring the link is working and not behind a paywall
+- source: "Claude"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 5 topics (20 questions per topic). For each topic, ensure 10 questions are Medium and 10 are Hard. Ensure questions are engaging and rich by focusing on US-centric examples (e.g., stories set in American cities, US holidays), themes like dinosaurs ("A passage about a T-Rex who loves to read…"), reading, writing, dogs, and wolves ("A wolf writes a story for a school project…"). Include only 1-2 humorous references across all questions, such as a pun or silly scenario (e.g., "A dog ‘paws-es’ to read—what does ‘paws-es’ mean?").
+
+For Comprehension questions, include a "passage" field with a short passage (3-5 sentences) appropriate for 6th-grade reading level, using the specified themes. For example:
+- Comprehension: "Passage: At a Chicago library, a dog named Max found a book about dinosaurs. He read about a T-Rex who loved to write stories. Max wagged his tail excitedly as he turned the pages. Question: Why was Max excited?"
+- Vocabulary: "During a school play, a wolf ‘howled’ with joy—what does ‘howled’ mean?"
+- Figurative Language: "A dinosaur said the library was ‘as quiet as a fossil’—what type of figurative language is this?"
+
+Ensure all correct answers are accurate for 6th-grade reading skills. Use proper grammar and avoid overly complex vocabulary.
+
+SCIENCE
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade Science in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "Science"
+- topic: One of the following topics: "Biology", "Physics", "Chemistry", "Earth Science", "Scientific Inquiry"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, presenting a clear, solvable science problem that matches the specified topic (e.g., a Biology question must involve biological concepts like cells or ecosystems, not unrelated topics). Use US-centric examples (e.g., US weather patterns, national parks, settings in American cities) and themes like dinosaurs, reading, writing, dogs, wolves. Include only 1-2 humorous references (e.g., a pun or silly scenario like "A dog ‘paws-itively’ glows after a science experiment—what causes it?") across all 100 questions for a small amount of humor.
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"], ensuring the options align with the topic (e.g., for Biology, options should relate to biological concepts, not unrelated measurements)
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer (e.g., "Think about what the heart does for the body.")
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student, showing the reasoning (e.g., "The heart pumps blood to carry oxygen around the body, which keeps the wolf alive.")
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter), providing specific feedback (e.g., "A) Breathing is incorrect because that’s the job of the lungs, not the heart.")
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["biology", "science"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource directly related to the topic (e.g., for Biology, use "https://www.nationalgeographic.com/science/article/animal-hearts"), ensuring the link is working and not behind a paywall
+- source: "ChatGPT"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 5 topics (20 questions per topic). For each topic, ensure 10 questions are Medium and 10 are Hard. Ensure questions are engaging and rich by creating scenarios that involve the specified themes. For example:
+- Biology: "At a Florida zoo, a wolf’s heart beats fast when it sees a dinosaur skeleton—what does the heart do for the wolf?"
+- Physics: "During a science fair in Texas, a student pushes a toy car with a force—how does the car move?"
+- Earth Science: "A student in California reads about the Grand Canyon—what type of rock is most common there?"
+
+Validate that each question is not a placeholder (e.g., do not use "This is a sample question") and contains a complete, solvable problem that matches the topic. Ensure all correct answers are scientifically accurate for 6th-grade level. Use proper grammar and avoid overly complex vocabulary.
+
+HISTORY
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade History in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "History"
+- topic: One of the following topics: "Ancient Civilizations", "Middle Ages", "World History", "US History", "Geography"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, using US-centric examples and themes like dinosaurs, reading, writing, dogs, wolves, with only 1-2 references to Hunger Games, Minecraft, Stardew Valley, or fart humor for a small amount of humor
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"]
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter)
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["ancient civilizations", "history"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource (e.g., History for Kids, PBS LearningMedia), ensuring the link is working and not behind a paywall
+- source: "Perplexity"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 5 topics (20 questions per topic). For each topic, ensure 10 questions are Medium and 10 are Hard. Ensure questions are engaging and rich by focusing on US-centric examples (e.g., US history events, American geography), themes like dinosaurs ("Ancient Egyptians wrote about dinosaur fossils…"), reading, writing, dogs, and wolves ("A wolf in colonial America guards a fort…"). Include only 1-2 humorous references across all questions, such as a pun or silly scenario (e.g., "A knight says his castle is ‘paws-itively’ huge—who worked the land?").
+
+For example:
+- US History: "At a Boston school, students read about the Revolutionary War—who wrote the Declaration of Independence?"
+- Ancient Civilizations: "A T-Rex skeleton is found near ancient Egyptian ruins—what were the pyramids used for?"
+- Geography: "A dog hikes in Yellowstone National Park—which US state is it in?"
+
+Ensure all correct answers are historically accurate for 6th-grade level. Use proper grammar and avoid overly complex vocabulary.
+
+ENGLISH
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade English in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "English"
+- topic: One of the following topics: "Grammar", "Writing", "Literature", "Spelling", "Vocabulary"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, using US-centric examples and themes like dinosaurs, reading, writing, dogs, wolves, with only 1-2 references to Hunger Games, Minecraft, Stardew Valley, or fart humor for a small amount of humor
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"]
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter)
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["grammar", "english"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource (e.g., Grammarly for Kids, Vocabulary.com), ensuring the link is working and not behind a paywall
+- source: "Claude"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 5 topics (20 questions per topic). For each topic, ensure 10 questions are Medium and 10 are Hard. Ensure questions are engaging and rich by focusing on US-centric examples (e.g., stories set in American schools, US holidays), themes like dinosaurs ("A T-Rex writes a story…"), reading, writing, dogs, and wolves ("A wolf spells a word for a spelling bee…"). Include only 1-2 humorous references across all questions, such as a pun or silly scenario (e.g., "A dog ‘paws-es’ to write a sentence—where does the comma go?").
+
+For example:
+- Grammar: "At a California school, a wolf writes, ‘I love books’—where should the comma go in this sentence?"
+- Writing: "During a school project, a student writes a story about a dinosaur—what’s the first step?"
+- Spelling: "At a spelling bee in Texas, a dog spells ‘fossil’—which spelling is correct?"
+
+Ensure all correct answers are accurate for 6th-grade English skills. Use proper grammar and avoid overly complex vocabulary.
+
+CODING-AI
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade Coding-AI in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "Coding-AI"
+- topic: One of the following topics: "Algorithms", "Logic", "Debugging", "Basic Programming Concepts", "AI Concepts"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, using US-centric examples and themes like dinosaurs, reading, writing, dogs, wolves, with only 1-2 references to Hunger Games, Minecraft, Stardew Valley, or fart humor for a small amount of humor
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"]
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter)
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["algorithms", "coding"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource (e.g., Code.org, Scratch.mit.edu), ensuring the link is working and not behind a paywall
+- source: "Grok"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 5 topics (20 questions per topic). For each topic, ensure 10 questions are Medium and 10 are Hard. Ensure questions are engaging and rich by focusing on US-centric examples (e.g., coding projects at a US school), themes like dinosaurs ("A T-Rex codes a sequence to organize fossils…"), reading, writing, dogs, and wolves ("A wolf debugs a program for a school project…"). Include only 1-2 humorous references across all questions, such as a pun or silly scenario (e.g., "A dog in Minecraft codes a ‘paws-itive’ loop—what concept is this?").
+
+For example:
+- Algorithms: "At a Seattle school, a student codes a sequence to help a dog fetch toys 5 times—what coding concept helps?"
+- Logic: "During a science fair, a wolf says, ‘If I see a dinosaur, I’ll run’—what type of statement is this?"
+- AI Concepts: "A student in Florida reads about AI helping wolves track prey—what does AI stand for?"
+
+Ensure all correct answers are accurate for 6th-grade coding skills. Use proper grammar and avoid overly complex vocabulary.
+
+LOGIC PUZZLES
+Generate exactly 100 unique multiple-choice quiz questions for 6th-grade Logic Puzzles in a JSON array. The response must be a JSON array of exactly 100 objects, each representing a question with the following fields:
+
+- subject: "Logic Puzzles"
+- topic: One of the following topics: "Riddles", "Patterns", "Logic Problems", "Critical Thinking", "Spatial Reasoning"
+- grade: 6
+- questionType: "MC"
+- question: The question text, appropriate for a 6th-grade student, using US-centric examples and themes like dinosaurs, reading, writing, dogs, wolves, with only 1-2 references to Hunger Games, Minecraft, Stardew Valley, or fart humor for a small amount of humor
+- options: An array of 4 options, labeled as ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"]
+- correctAnswer: The letter of the correct option ("A", "B", "C", or "D")
+- hint: A short, one-sentence hint to guide the student without giving the answer
+- correctAnswerExplanation: A detailed explanation (2-3 sentences) of why the correct answer is correct, written for a 6th-grade student
+- incorrectAnswersExplanation: An object with explanations for each incorrect option (A, B, C, D), explaining why the option is wrong and guiding the student toward the correct approach (omit the correct answer’s letter)
+- difficulty: "Medium" for 50 questions, "Hard" for 50 questions (distribute evenly across topics)
+- tags: An array of keywords for categorization (e.g., ["riddles", "logic"])
+- timeEstimate: Estimated time to solve in seconds (60 for Medium, 90 for Hard)
+- webLink: A URL to a relevant educational resource (e.g., BrainPOP, Puzzle Baron), ensuring the link is working and not behind a paywall
+- source: "Grok"
+- lastUpdated: "2025-04-23"
+
+Distribute questions evenly across the 5 topics (20 questions per topic). For each topic, ensure 10 questions are Medium and 10 are Hard. Ensure questions are engaging and rich by focusing on US-centric examples (e.g., puzzles set in American cities, US holidays), themes like dinosaurs ("A T-Rex solves a riddle at a museum…"), reading, writing, dogs, and wolves ("A wolf follows a pattern to find a book…"). Include only 1-2 humorous references across all questions, such as a pun or silly scenario (e.g., "A dog says a riddle is ‘paws-itively’ tricky—what’s the answer?").
+
+For example:
+- Riddles: "I’m a dinosaur who writes without a pen and reads without a book—what am I?"
+- Patterns: "At a New York library, a dog notices a pattern in book numbers: 2, 4, 6—what’s next?"
+- Logic Problems: "At a school in Ohio, a T-Rex, a wolf, and a dog are lined up—who’s tallest if the T-Rex is taller than the dog but shorter than the wolf?"
+
+Ensure all correct answers are accurate for 6th-grade logic skills. Use proper grammar and avoid overly complex vocabulary.

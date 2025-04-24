@@ -12,6 +12,7 @@ import {
   getLocalAchievements,
   getCompletedQuizzes,
 } from "@/lib/storage";
+import TrophyCase from "@/components/TrophyCase";
 
 // Hardcoded user ID for anonymous user (to be replaced with auth later)
 const ANONYMOUS_USER_ID = "123e4567-e89b-12d3-a456-426614174000";
@@ -348,6 +349,9 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Trophy Case Section */}
+        <TrophyCase />
 
         {/* Subject Cards */}
         <div className="mb-[30px]">
