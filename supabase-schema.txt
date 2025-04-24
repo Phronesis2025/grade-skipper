@@ -1,0 +1,102 @@
+-- Supabase Schema for Grade Skipper Project
+-- Generated on April 23, 2025
+
+-- Table: quizzes
+-- Description: Stores completed quiz results.
+CREATE TABLE public.quizzes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject VARCHAR(50) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    grade INTEGER NOT NULL CHECK (grade >= 6 AND grade <= 9),
+    score FLOAT NOT NULL CHECK (score >= 0 AND score <= 100),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    time_spent INTEGER NOT NULL,
+    hints_used INTEGER NOT NULL,
+    calculator_used BOOLEAN NOT NULL
+);
+
+-- Table: progress
+-- Description: Tracks progress per subject, topic, and grade.
+CREATE TABLE public.progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject VARCHAR(50) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    grade INTEGER NOT NULL CHECK (grade >= 6 AND grade <= 9),
+    quiz_scores FLOAT[] NOT NULL,
+    mastered BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Table: points
+-- Description: Stores the user’s total points.
+CREATE TABLE public.points (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    total_points INTEGER NOT NULL DEFAULT 0
+);
+
+-- Table: streaks
+-- Description: Tracks quiz-taking streaks.
+CREATE TABLE public.streaks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    current INTEGER NOT NULL DEFAULT 0,
+    longest INTEGER NOT NULL DEFAULT 0,
+    last_quiz_date DATE
+);
+
+-- Table: achievements
+-- Description: Stores earned achievements.
+CREATE TABLE public.achievements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    achievement_id VARCHAR(50) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    earned TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Table: rewards
+-- Description: Stores virtual rewards for the trophy case.
+CREATE TABLE public.rewards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reward_id VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    name VARCHAR(100) NOT NULL, -- Added from schema screenshot
+    unlocked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Table: streak_freezes
+-- Description: Tracks streak freeze usage.
+CREATE TABLE public.streak_freezes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    freeze_date DATE NOT NULL,
+    points_spent INTEGER NOT NULL
+);
+
+-- Table: event_logs
+-- Description: Records user actions for analytics.
+CREATE TABLE public.event_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type VARCHAR(50) NOT NULL,
+    details JSONB NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Table: quiz_attempts
+-- Description: Tracks quiz attempts (added from schema screenshot).
+CREATE TABLE public.quiz_attempts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject VARCHAR(50) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    grade INTEGER NOT NULL CHECK (grade >= 6 AND grade <= 9),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    completed BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Indexes for performance 
+CREATE INDEX idx_quizzes_subject ON public.quizzes(subject);
+CREATE INDEX idx_quizzes_topic ON public.quizzes(topic);
+CREATE INDEX idx_quizzes_grade ON public.quizzes(grade);
+CREATE INDEX idx_quizzes_timestamp ON public.quizzes(timestamp);
+
+CREATE INDEX idx_progress_subject ON public.progress(subject);
+CREATE INDEX idx_progress_topic ON public.progress(topic);
+CREATE INDEX idx_progress_grade ON public.progress(grade);
+
+CREATE INDEX idx_event_logs_timestamp ON public.event_logs(timestamp);

@@ -1,338 +1,480 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { format, subDays } from "date-fns";
 import dynamic from "next/dynamic";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { CheckCircle, Clock, Lightbulb } from "lucide-react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Line,
+  Bar,
+} from "recharts";
 
-// Dynamically import recharts components with SSR disabled
-const LineChart = dynamic(
-  () => import("recharts").then((mod) => mod.LineChart),
-  { ssr: false }
-);
-const Line = dynamic(() => import("recharts").then((mod) => mod.Line), {
+// Dynamic import for Charts component
+const Charts = dynamic(() => import("@/app/admin/Charts"), {
   ssr: false,
-});
-const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), {
-  ssr: false,
-});
-const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), {
-  ssr: false,
-});
-const CartesianGrid = dynamic(
-  () => import("recharts").then((mod) => mod.CartesianGrid),
-  { ssr: false }
-);
-const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), {
-  ssr: false,
-});
-const Legend = dynamic(() => import("recharts").then((mod) => mod.Legend), {
-  ssr: false,
+  loading: () => (
+    <div className="text-center p-4">
+      <p>Loading charts...</p>
+    </div>
+  ),
 });
 
 interface Quiz {
   id: string;
-  timestamp: string;
   subject: string;
+  topic: string;
+  grade: number;
   score: number;
+  timestamp: string;
   time_spent: number;
   hints_used: number;
   calculator_used: boolean;
 }
 
-interface EventLog {
+interface QuizAttempt {
   id: string;
+  subject: string;
+  topic: string;
+  grade: number;
   timestamp: string;
-  event_type: string;
-  details: Record<string, any>;
+  completed: boolean;
 }
 
-interface SortConfig {
-  key: string;
-  direction: "asc" | "desc";
+interface ChartData {
+  date: string;
+  timeSpent: number;
+  quizCount: number;
 }
 
 export default function AdminPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [eventLogs, setEventLogs] = useState<EventLog[]>([]);
-  const [quizAttempts, setQuizAttempts] = useState<{ completed: boolean }[]>(
-    []
-  );
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
+  const [metrics, setMetrics] = useState({
+    completionRate: 0,
+    totalQuizTime: 0,
+    averageQuizTime: 0,
+    averageHintsUsed: 0,
+  });
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedQuizzes, setSelectedQuizzes] = useState<string[]>([]);
-  const [quizSort, setQuizSort] = useState<SortConfig>({
-    key: "timestamp",
-    direction: "desc",
-  });
-  const [eventSort, setEventSort] = useState<SortConfig>({
-    key: "timestamp",
-    direction: "desc",
-  });
-  const [isChartLoaded, setIsChartLoaded] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [hasChartData, setHasChartData] = useState(false);
 
-  // Simulate chart loading and toast visibility
+  // Refs for chart containers to get their width
+  const timeSpentChartRef = useRef<HTMLDivElement>(null);
+  const quizzesChartRef = useRef<HTMLDivElement>(null);
+  const [chartWidth, setChartWidth] = useState(600);
+
+  // Update chart width based on container size
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setTimeout(() => setIsChartLoaded(true), 200);
-      setShowToast(true);
-    }
+    const updateChartWidth = () => {
+      const width = timeSpentChartRef.current?.offsetWidth || 600;
+      setChartWidth(Math.max(width, 300)); // Ensure minimum width for readability
+    };
+
+    updateChartWidth();
+    window.addEventListener("resize", updateChartWidth);
+    return () => window.removeEventListener("resize", updateChartWidth);
   }, []);
 
-  // Fetch data from Supabase
+  // Fetch data on mount
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         // Fetch quizzes
-        const { data: quizData, error: quizError } = await supabase
+        const { data: quizzesData, error: quizzesError } = await supabase
           .from("quizzes")
-          .select("*");
-        if (quizError)
-          throw new Error(`Failed to fetch quizzes: ${quizError.message}`);
-        console.log("Fetched quizzes:", quizData);
-        setQuizzes(quizData || []);
+          .select("*")
+          .order("timestamp", { ascending: false });
+
+        if (quizzesError) throw new Error("Failed to fetch quizzes");
 
         // Fetch quiz attempts
-        const { data: attemptData, error: attemptError } = await supabase
+        const { data: attemptsData, error: attemptsError } = await supabase
           .from("quiz_attempts")
-          .select("completed");
-        if (attemptError)
-          throw new Error(
-            `Failed to fetch quiz attempts: ${attemptError.message}`
-          );
-        console.log("Fetched quiz attempts:", attemptData);
-        setQuizAttempts(attemptData || []);
+          .select("*")
+          .order("timestamp", { ascending: false });
 
-        // Fetch event logs
-        const { data: logData, error: logError } = await supabase
-          .from("event_logs")
-          .select("*");
-        if (logError)
-          throw new Error(`Failed to fetch event logs: ${logError.message}`);
-        console.log("Fetched event logs:", logData);
-        setEventLogs(logData || []);
+        if (attemptsError) throw new Error("Failed to fetch quiz attempts");
+
+        console.log("Fetched quizzes:", quizzesData); // Debug log
+
+        // Set state
+        setQuizzes(quizzesData || []);
+        setQuizAttempts(attemptsData || []);
+
+        // Calculate metrics
+        const completedCount = quizzesData?.length || 0;
+        const totalAttempts = attemptsData?.length || 0;
+        const completionRate =
+          totalAttempts > 0 ? (completedCount / totalAttempts) * 100 : 0;
+
+        const totalQuizTime =
+          quizzesData?.reduce((sum, quiz) => sum + (quiz.time_spent || 0), 0) ||
+          0;
+
+        const averageQuizTime =
+          completedCount > 0 ? totalQuizTime / completedCount / 60 : 0; // Convert to minutes
+
+        const totalHintsUsed =
+          quizzesData?.reduce((sum, quiz) => sum + (quiz.hints_used || 0), 0) ||
+          0;
+        const averageHintsUsed =
+          completedCount > 0 ? totalHintsUsed / completedCount : 0;
+
+        setMetrics({
+          completionRate: parseFloat(completionRate.toFixed(2)),
+          totalQuizTime: parseFloat((totalQuizTime / 60).toFixed(2)), // Convert to minutes
+          averageQuizTime: parseFloat(averageQuizTime.toFixed(2)),
+          averageHintsUsed: parseFloat(averageHintsUsed.toFixed(2)),
+        });
+
+        // Find the latest date in the data
+        const latestDate = new Date(
+          Math.max(...quizzesData.map((q) => new Date(q.timestamp).getTime()))
+        );
+        const thirtyDaysAgo = new Date(latestDate);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        console.log("Latest date:", latestDate.toISOString());
+        console.log("Thirty days ago:", thirtyDaysAgo.toISOString());
+
+        const timeSpentByDay: { [key: string]: number } = {};
+        const quizzesByDay: { [key: string]: number } = {};
+
+        console.log("Processing quizzes:", quizzesData?.length);
+        quizzesData?.forEach((quiz) => {
+          const timestamp = new Date(quiz.timestamp);
+          if (isNaN(timestamp.getTime())) {
+            console.warn(
+              `Invalid timestamp for quiz ${quiz.id}: ${quiz.timestamp}`
+            );
+            return;
+          }
+
+          // Only include quizzes within the last 30 days
+          if (timestamp < thirtyDaysAgo) {
+            console.log(
+              `Skipping quiz from ${timestamp.toISOString()} - too old`
+            );
+            return;
+          }
+
+          const date = timestamp.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+          console.log(`Processing quiz for date ${date}:`, {
+            timeSpent: quiz.time_spent,
+            timestamp: quiz.timestamp,
+          });
+
+          // Initialize if not exists
+          if (!timeSpentByDay[date]) {
+            timeSpentByDay[date] = 0;
+          }
+          if (!quizzesByDay[date]) {
+            quizzesByDay[date] = 0;
+          }
+
+          // Accumulate values
+          timeSpentByDay[date] += quiz.time_spent || 0;
+          quizzesByDay[date] += 1;
+        });
+
+        console.log(
+          "Time Spent By Day:",
+          JSON.stringify(timeSpentByDay, null, 2)
+        );
+        console.log("Quizzes By Day:", JSON.stringify(quizzesByDay, null, 2));
+
+        const chartData = Array.from({ length: 30 }, (_, i) => {
+          const date = new Date(latestDate);
+          date.setDate(date.getDate() - (29 - i));
+          const formattedDate = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+          return {
+            date: formattedDate,
+            timeSpent: timeSpentByDay[formattedDate] || 0,
+            quizCount: quizzesByDay[formattedDate] || 0,
+          };
+        }).reverse();
+
+        console.log("Final Chart Data:", JSON.stringify(chartData, null, 2));
+        setChartData(chartData);
+
+        // Check if there's any non-zero data for charts
+        const hasData = chartData.some(
+          (data) => data.timeSpent > 0 || data.quizCount > 0
+        );
+        console.log(
+          "Has data:",
+          hasData,
+          "Non-zero entries:",
+          chartData.filter((d) => d.timeSpent > 0 || d.quizCount > 0).length
+        );
+        setHasChartData(hasData);
       } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Failed to load data. Please try again.", {
+        console.error("Fetch error:", error);
+        toast.error("Failed to load data", {
           position: "top-right",
           autoClose: 3000,
-          theme: "light",
-          style: { backgroundColor: "#F0F4FF", color: "#4361ee" },
+          style: { background: "#F0F4FF", color: "#4361ee" },
         });
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
-  // Calculate metrics
-  const totalQuizzes = quizzes.length;
-  const totalAttempts = quizAttempts.length;
-  const completionRate =
-    totalAttempts > 0 ? (totalQuizzes / totalAttempts) * 100 : 0;
-  const totalQuizTime = quizzes.reduce(
-    (sum, quiz) => sum + Number(quiz.time_spent || 0),
-    0
-  );
-  const averageQuizTime = totalQuizzes > 0 ? totalQuizTime / totalQuizzes : 0;
-  const promptTimes = eventLogs
-    .filter((log) =>
-      ["prompt_successful", "prompt_failed"].includes(log.event_type)
-    )
-    .map((log) => Number(log.details.time_ms || 0));
-  const averagePromptTime =
-    promptTimes.length > 0
-      ? promptTimes.reduce((sum, time) => sum + time, 0) /
-        promptTimes.length /
-        1000
-      : 0;
-
-  // Prepare chart data (last 30 days)
-  const last30Days = Array.from({ length: 30 }, (_, i) => ({
-    date: format(subDays(new Date(), i), "yyyy-MM-dd"),
-    time_spent: 0,
-    quiz_count: 0,
-  })).reverse();
-
-  quizzes.forEach((quiz) => {
-    const quizDate = format(new Date(quiz.timestamp), "yyyy-MM-dd");
-    const day = last30Days.find((d) => d.date === quizDate);
-    if (day) {
-      day.time_spent += Number(quiz.time_spent || 0);
-      day.quiz_count += 1;
-    }
-  });
-  console.log("Chart data (last30Days):", last30Days);
-
-  // Handle sorting
-  const handleSort = (key: string, table: "quizzes" | "event_logs") => {
-    const setSort = table === "quizzes" ? setQuizSort : setEventSort;
-    const currentSort = table === "quizzes" ? quizSort : eventSort;
-    const direction =
-      currentSort.key === key && currentSort.direction === "asc"
-        ? "desc"
-        : "asc";
-    setSort({ key, direction });
-
-    const data = table === "quizzes" ? [...quizzes] : [...eventLogs];
-    data.sort((a, b) => {
-      const aValue = a[key as keyof typeof a];
-      const bValue = b[key as keyof typeof b];
-      if (aValue < bValue) return direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-    table === "quizzes" ? setQuizzes(data) : setEventLogs(data);
-  };
-
   // Handle quiz deletion
-  const handleDeleteQuizzes = async () => {
+  const handleDeleteSelected = async () => {
     if (selectedQuizzes.length === 0) return;
+
     try {
       const { error } = await supabase
         .from("quizzes")
         .delete()
         .in("id", selectedQuizzes);
-      if (error) throw error;
+
+      if (error) throw new Error("Failed to delete quizzes");
+
       setQuizzes(quizzes.filter((quiz) => !selectedQuizzes.includes(quiz.id)));
       setSelectedQuizzes([]);
       toast.success("Selected quizzes deleted successfully!", {
         position: "top-right",
         autoClose: 3000,
-        theme: "light",
-        style: { backgroundColor: "#F0F4FF", color: "#4361ee" },
+        style: { background: "#F0F4FF", color: "#4361ee" },
       });
     } catch (error) {
-      console.error("Error deleting quizzes:", error);
-      toast.error("Failed to delete quizzes. Please try again.", {
+      console.error(error);
+      toast.error("Failed to delete quizzes", {
         position: "top-right",
         autoClose: 3000,
-        theme: "light",
-        style: { backgroundColor: "#F0F4FF", color: "#4361ee" },
+        style: { background: "#F0F4FF", color: "#4361ee" },
       });
     }
   };
 
+  // Handle checkbox selection
+  const handleCheckboxChange = (quizId: string) => {
+    setSelectedQuizzes((prev) =>
+      prev.includes(quizId)
+        ? prev.filter((id) => id !== quizId)
+        : [...prev, quizId]
+    );
+  };
+
+  // Sort quizzes
+  const handleSort = (column: keyof Quiz, order: "asc" | "desc") => {
+    const sorted = [...quizzes].sort((a, b) => {
+      if (column === "timestamp") {
+        return order === "asc"
+          ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      } else if (column === "subject") {
+        return order === "asc"
+          ? a.subject.localeCompare(b.subject)
+          : b.subject.localeCompare(a.subject);
+      } else if (
+        column === "score" ||
+        column === "time_spent" ||
+        column === "hints_used"
+      ) {
+        return order === "asc"
+          ? (a[column] || 0) - (b[column] || 0)
+          : (b[column] || 0) - (a[column] || 0);
+      } else if (column === "calculator_used") {
+        return order === "asc"
+          ? Number(a.calculator_used) - Number(b.calculator_used)
+          : Number(b.calculator_used) - Number(a.calculator_used);
+      }
+      return 0;
+    });
+    setQuizzes(sorted);
+  };
+
   return (
-    <div className="bg-[#F0F1F2] min-h-screen p-[20px]">
-      <h1 className="text-[24px] font-bold text-[#333] mb-[20px] text-center">
-        Admin Dashboard
-      </h1>
-
-      {/* Toast Container (client-only) */}
-      {showToast && <ToastContainer />}
-
-      {/* Metrics */}
-      <div className="grid grid-cols-2 gap-[15px] max-sm:grid-cols-1 mb-[30px]">
-        <div className="bg-[#f0f4ff] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-          <p className="text-[16px] font-semibold text-[#4361ee] mb-[3px]">
-            Quiz Completion Rate
-          </p>
-          <p className="text-[20px] font-extrabold text-[#4361ee]">
-            {completionRate.toFixed(1)}%
-          </p>
-        </div>
-        <div className="bg-[#f0f4ff] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-          <p className="text-[16px] font-semibold text-[#4361ee] mb-[3px]">
-            Total Quiz Time
-          </p>
-          <p className="text-[20px] font-extrabold text-[#4361ee]">
-            {(totalQuizTime / 60).toFixed(1)} min
-          </p>
-        </div>
-        <div className="bg-[#f0f4ff] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-          <p className="text-[16px] font-semibold text-[#4361ee] mb-[3px]">
-            Average Quiz Time
-          </p>
-          <p className="text-[20px] font-extrabold text-[#4361ee]">
-            {(averageQuizTime / 60).toFixed(1)} min
-          </p>
-        </div>
-        <div className="bg-[#f0f4ff] rounded-[10px] p-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-          <p className="text-[16px] font-semibold text-[#4361ee] mb-[3px]">
-            Average Prompt Time
-          </p>
-          <p className="text-[20px] font-extrabold text-[#4361ee]">
-            {averagePromptTime.toFixed(2)} sec
-          </p>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="mb-[30px]">
-        <h2 className="text-[18px] font-bold mb-[15px]">
-          Quiz Activity (Last 30 Days)
-        </h2>
-        {isChartLoaded ? (
-          <>
-            <div className="bg-[white] rounded-[10px] p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] mb-[20px]">
-              <h3 className="text-[16px] font-semibold mb-[10px]">
-                Time Spent per Day (sec)
-              </h3>
-              <LineChart
-                width={600}
-                height={300}
-                data={last30Days}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="time_spent"
-                  stroke="#4361ee"
-                  name="Time (sec)"
-                />
-              </LineChart>
-            </div>
-            <div className="bg-[white] rounded-[10px] p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-              <h3 className="text-[16px] font-semibold mb-[10px]">
-                Quizzes Completed per Day
-              </h3>
-              <LineChart
-                width={600}
-                height={300}
-                data={last30Days}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="quiz_count"
-                  stroke="#4361ee"
-                  name="Quizzes"
-                />
-              </LineChart>
-            </div>
-          </>
-        ) : (
-          <div className="text-center text-[16px] text-[#555]">
-            Loading charts...
-          </div>
-        )}
-      </div>
-
-      {/* Quizzes Table */}
-      <div className="mb-[30px]">
-        <h2 className="text-[18px] font-bold mb-[15px]">Completed Quizzes</h2>
-        <button
-          onClick={handleDeleteQuizzes}
-          className="bg-[#dc2626] text-[white] px-[16px] py-[8px] rounded-[6px] text-[14px] font-semibold mb-[10px] disabled:opacity-50"
-          disabled={selectedQuizzes.length === 0}
+    <div className="flex flex-col min-h-screen bg-[#F9FAFB]">
+      <div className="flex-grow px-[25px] py-[25px]">
+        {/* Metrics Section */}
+        <div
+          className="rounded-[16px] p-[25px] mb-[30px] shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+          style={{ backgroundColor: "white", width: "100%" }}
         >
-          Delete Selected
-        </button>
-        <div className="bg-[white] rounded-[10px] p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] overflow-x-auto">
-          <table className="w-full text-[14px] text-[#333]">
+          <h2 className="text-[20px] font-bold text-[#333] mb-[15px]">
+            Quiz Metrics
+          </h2>
+          <div className="flex flex-row gap-[15px] max-[640px]:grid max-[640px]:grid-cols-2">
+            {/* Quiz Completion Rate */}
+            <div className="flex-1 bg-[#f0f4ff] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+              <div className="bg-[#2f4ac7] rounded-[4px] w-[25px] h-[25px] flex items-center justify-center mb-[8px] border border-[#f0f4ff]">
+                <CheckCircle className="w-[16px] h-[16px] text-[white]" />
+              </div>
+              <p className="text-[13px] text-[#555] mb-[3px]">
+                Quiz Completion Rate
+              </p>
+              <p className="text-[20px] font-extrabold text-[#4361ee]">
+                {loading ? "Loading..." : `${metrics.completionRate}%`}
+              </p>
+            </div>
+            {/* Total Quiz Time */}
+            <div className="flex-1 bg-[#ecfdf5] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+              <div className="bg-[#099465] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#ecfdf5]">
+                <Clock className="text-[white] w-[16px] h-[16px]" />
+              </div>
+              <p className="text-[13px] text-[#555] mb-[3px]">
+                Total Quiz Time
+              </p>
+              <p className="text-[20px] font-extrabold text-[#10b981]">
+                {loading ? "Loading..." : `${metrics.totalQuizTime} min`}
+              </p>
+            </div>
+            {/* Average Quiz Time */}
+            <div className="flex-1 bg-[#f5f3ff] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+              <div className="bg-[#6d43c7] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#f5f3ff]">
+                <Clock className="w-[16px] h-[16px] text-[white]" />
+              </div>
+              <p className="text-[13px] text-[#555] mb-[3px]">
+                Average Quiz Time
+              </p>
+              <p className="text-[20px] font-extrabold text-[#8b5cf6]">
+                {loading ? "Loading..." : `${metrics.averageQuizTime} min`}
+              </p>
+            </div>
+            {/* Average Hints Used */}
+            <div className="flex-1 bg-[#fff7ed] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+              <div className="bg-[#d97706] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#fff7ed]">
+                <Lightbulb className="w-[16px] h-[16px] text-[white]" />
+              </div>
+              <p className="text-[13px] text-[#555] mb-[3px]">
+                Average Hints Used
+              </p>
+              <p className="text-[20px] font-extrabold text-[#f97316]">
+                {loading ? "Loading..." : metrics.averageHintsUsed}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div
+          className="rounded-[16px] p-[25px] mb-[30px] shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+          style={{ backgroundColor: "white", width: "100%" }}
+        >
+          <h2 className="text-[18px] font-bold text-[#333] mb-[15px]">
+            Quiz Activity Trends
+          </h2>
+          <div className="grid grid-cols-2 gap-[15px] max-[768px]:grid-cols-1">
+            {/* Time Spent per Day */}
+            <div ref={timeSpentChartRef}>
+              <h3 className="text-[16px] font-semibold text-[#333] mb-[15px]">
+                Time Spent per Day
+              </h3>
+              {loading ? (
+                <p className="text-[16px] text-[#555] text-center">
+                  Loading charts...
+                </p>
+              ) : !hasChartData ? (
+                <p className="text-[16px] text-[#555] text-center">
+                  No quiz data available for the last 30 days
+                </p>
+              ) : (
+                <>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Data points:{" "}
+                    {
+                      chartData.filter(
+                        (d) => d.timeSpent > 0 || d.quizCount > 0
+                      ).length
+                    }
+                  </div>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Total time spent:{" "}
+                    {chartData.reduce((sum, d) => sum + d.timeSpent, 0)} seconds
+                  </div>
+                  <Charts
+                    type="line"
+                    data={chartData}
+                    dataKey="timeSpent"
+                    stroke="#4361ee"
+                  />
+                </>
+              )}
+            </div>
+            {/* Quizzes per Day */}
+            <div ref={quizzesChartRef}>
+              <h3 className="text-[16px] font-semibold text-[#333] mb-[15px]">
+                Quizzes per Day
+              </h3>
+              {loading ? (
+                <p className="text-[16px] text-[#555] text-center">
+                  Loading charts...
+                </p>
+              ) : !hasChartData ? (
+                <p className="text-[16px] text-[#555] text-center">
+                  No quiz data available for the last 30 days
+                </p>
+              ) : (
+                <>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Data points:{" "}
+                    {
+                      chartData.filter(
+                        (d) => d.timeSpent > 0 || d.quizCount > 0
+                      ).length
+                    }
+                  </div>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Total quizzes:{" "}
+                    {chartData.reduce((sum, d) => sum + d.quizCount, 0)}
+                  </div>
+                  <Charts
+                    type="bar"
+                    data={chartData}
+                    dataKey="quizCount"
+                    fill="#4361ee"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Quizzes Table */}
+        <div
+          className="rounded-[16px] p-[25px] mb-[30px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-x-auto"
+          style={{ backgroundColor: "white", width: "100%" }}
+        >
+          <div className="flex justify-between items-center mb-[15px]">
+            <h2 className="text-[18px] font-bold text-[#333]">Quiz History</h2>
+            <button
+              onClick={handleDeleteSelected}
+              disabled={selectedQuizzes.length === 0}
+              className={`rounded-[6px] px-[16px] py-[8px] text-white font-semibold ${
+                selectedQuizzes.length === 0 ? "bg-gray-400" : "bg-[#dc2626]"
+              }`}
+            >
+              Delete Selected
+            </button>
+          </div>
+          <table className="w-full text-[14px] text-[#333] border-collapse">
             <thead>
-              <tr className="border-b">
-                <th className="p-[10px] text-left">
+              <tr className="bg-[#f0f4ff] text-[#4361ee]">
+                <th className="p-[10px] text-left border-b border-[#E5E7EB]">
                   <input
                     type="checkbox"
                     onChange={(e) =>
@@ -340,135 +482,85 @@ export default function AdminPage() {
                         e.target.checked ? quizzes.map((q) => q.id) : []
                       )
                     }
-                    checked={
-                      selectedQuizzes.length === quizzes.length &&
-                      quizzes.length > 0
-                    }
                   />
                 </th>
                 <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("timestamp", "quizzes")}
+                  className="p-[10px] text-left border-b border-[#E5E7EB] cursor-pointer hover:text-[#1e40af]"
+                  onClick={() => handleSort("timestamp", "asc")}
                 >
-                  Time{" "}
-                  {quizSort.key === "timestamp" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
+                  Time
                 </th>
-                <th className="p-[10px] text-left">Date</th>
-                <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("subject", "quizzes")}
-                >
-                  Subject{" "}
-                  {quizSort.key === "subject" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
+                <th className="p-[10px] text-left border-b border-[#E5E7EB]">
+                  Date
                 </th>
                 <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("score", "quizzes")}
+                  className="p-[10px] text-left border-b border-[#E5E7EB] cursor-pointer hover:text-[#1e40af]"
+                  onClick={() => handleSort("subject", "asc")}
                 >
-                  Score{" "}
-                  {quizSort.key === "score" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
+                  Subject
                 </th>
                 <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("time_spent", "quizzes")}
+                  className="p-[10px] text-left border-b border-[#E5E7EB] cursor-pointer hover:text-[#1e40af]"
+                  onClick={() => handleSort("score", "asc")}
                 >
-                  Time Spent{" "}
-                  {quizSort.key === "time_spent" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
+                  Score
                 </th>
                 <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("hints_used", "quizzes")}
+                  className="p-[10px] text-left border-b border-[#E5E7EB] cursor-pointer hover:text-[#1e40af]"
+                  onClick={() => handleSort("time_spent", "asc")}
                 >
-                  Hints Used{" "}
-                  {quizSort.key === "hints_used" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
+                  Time Spent
                 </th>
                 <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("calculator_used", "quizzes")}
+                  className="p-[10px] text-left border-b border-[#E5E7EB] cursor-pointer hover:text-[#1e40af]"
+                  onClick={() => handleSort("hints_used", "asc")}
                 >
-                  Calculator{" "}
-                  {quizSort.key === "calculator_used" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
+                  Hints Used
+                </th>
+                <th
+                  className="p-[10px] text-left border-b border-[#E5E7EB] cursor-pointer hover:text-[#1e40af]"
+                  onClick={() => handleSort("calculator_used", "asc")}
+                >
+                  Calculator
                 </th>
               </tr>
             </thead>
             <tbody>
-              {quizzes.map((quiz) => (
-                <tr key={quiz.id} className="border-b">
-                  <td className="p-[10px]">
+              {quizzes.map((quiz, index) => (
+                <tr
+                  key={quiz.id}
+                  className={`${
+                    index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]"
+                  } hover:bg-[#E0E7FF] transition-colors`}
+                >
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
                     <input
                       type="checkbox"
                       checked={selectedQuizzes.includes(quiz.id)}
-                      onChange={() =>
-                        setSelectedQuizzes(
-                          selectedQuizzes.includes(quiz.id)
-                            ? selectedQuizzes.filter((id) => id !== quiz.id)
-                            : [...selectedQuizzes, quiz.id]
-                        )
-                      }
+                      onChange={() => handleCheckboxChange(quiz.id)}
                     />
                   </td>
-                  <td className="p-[10px]">
-                    {format(new Date(quiz.timestamp), "M-d-yyyy h:mm a")}
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
+                    {new Date(quiz.timestamp).toLocaleTimeString()}
                   </td>
-                  <td className="p-[10px]">
-                    {format(new Date(quiz.timestamp), "M-d-yyyy")}
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
+                    {new Date(quiz.timestamp).toLocaleDateString()}
                   </td>
-                  <td className="p-[10px]">{quiz.subject}</td>
-                  <td className="p-[10px]">{quiz.score}%</td>
-                  <td className="p-[10px]">
-                    {(quiz.time_spent / 60).toFixed(1)} min
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
+                    {quiz.subject}
                   </td>
-                  <td className="p-[10px]">{quiz.hints_used}</td>
-                  <td className="p-[10px]">
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
+                    {quiz.score}
+                  </td>
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
+                    {Math.round(quiz.time_spent / 60)} min
+                  </td>
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
+                    {quiz.hints_used}
+                  </td>
+                  <td className="p-[10px] border-b border-[#E5E7EB]">
                     {quiz.calculator_used ? "Yes" : "No"}
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Event Logs Table */}
-      <div>
-        <h2 className="text-[18px] font-bold mb-[15px]">Event Logs</h2>
-        <div className="bg-[white] rounded-[10px] p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] overflow-x-auto">
-          <table className="w-full text-[14px] text-[#333]">
-            <thead>
-              <tr className="border-b">
-                <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("timestamp", "event_logs")}
-                >
-                  Time{" "}
-                  {eventSort.key === "timestamp" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="p-[10px] text-left cursor-pointer"
-                  onClick={() => handleSort("event_type", "event_logs")}
-                >
-                  Event Type{" "}
-                  {eventSort.key === "event_type" &&
-                    (quizSort.direction === "asc" ? "↑" : "↓")}
-                </th>
-                <th className="p-[10px] text-left">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {eventLogs.map((log) => (
-                <tr key={log.id} className="border-b">
-                  <td className="p-[10px]">
-                    {format(new Date(log.timestamp), "M-d-yyyy h:mm a")}
-                  </td>
-                  <td className="p-[10px]">{log.event_type}</td>
-                  <td className="p-[10px]">{JSON.stringify(log.details)}</td>
                 </tr>
               ))}
             </tbody>

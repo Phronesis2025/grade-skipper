@@ -20,7 +20,6 @@ const testQuiz = {
 };
 saveCompletedQuiz(testQuiz);
 console.log(getCompletedQuizzes());
-
 export default function SubjectPage() {
   // Get the subject ID from the route parameter
   const params = useParams();

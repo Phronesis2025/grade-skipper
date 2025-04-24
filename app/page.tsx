@@ -2,47 +2,156 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getUserProgress } from "@/lib/storage";
-import { Progress } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { subjects } from "@/lib/subjects";
 import { Book, Check, Flame, Lightbulb, Star, Award } from "lucide-react";
 
+interface Quiz {
+  id: string;
+  subject: string;
+  topic: string;
+  grade: number;
+  score: number;
+  timestamp: string;
+  time_spent: number;
+  hints_used: number;
+  calculator_used: boolean;
+}
+
+interface Streak {
+  id: string;
+  current: number;
+  last_quiz_date: string;
+}
+
+interface Achievement {
+  id: string;
+  achievement_id: string;
+  name: string;
+  earned: boolean;
+}
+
+interface SubjectProgress {
+  gradeLevel: number;
+  percentage: number;
+}
+
 export default function Home() {
-  const [userProgress, setUserProgress] = useState<Progress>({
-    completedQuizzes: [],
-    subjectProgress: {},
-    points: 0,
-    level: 1,
+  const [metrics, setMetrics] = useState({
+    totalQuizScore: 0,
+    quizzesCompleted: 0,
+    currentStreak: 0,
+    achievements: 0,
   });
+  const [subjectProgress, setSubjectProgress] = useState<
+    Record<string, SubjectProgress>
+  >({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const progress = getUserProgress();
-    setUserProgress(progress);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch quizzes
+        const { data: quizzesData, error: quizzesError } = await supabase
+          .from("quizzes")
+          .select("*");
+
+        if (quizzesError) throw new Error("Failed to fetch quizzes");
+
+        // Fetch streaks
+        const { data: streaksData, error: streaksError } = await supabase
+          .from("streaks")
+          .select("current")
+          .single();
+
+        if (streaksError && streaksError.code !== "PGRST116") {
+          throw new Error("Failed to fetch streaks");
+        }
+
+        // Fetch achievements
+        let achievementsCount = 0;
+        try {
+          const { data: achievementsData, error: achievementsError } =
+            await supabase.from("achievements").select("*").eq("earned", true);
+
+          if (achievementsError && achievementsError.code !== "PGRST116") {
+            console.warn(
+              "Achievements table might not exist:",
+              achievementsError.message
+            );
+          } else {
+            achievementsCount = achievementsData?.length || 0;
+          }
+        } catch (error) {
+          console.warn("Could not fetch achievements:", error);
+        }
+
+        // Calculate stat card metrics
+        const quizzesCompleted = quizzesData?.length || 0;
+        const totalQuizScore =
+          quizzesCompleted > 0
+            ? quizzesData.reduce(
+                (sum: number, quiz: Quiz) => sum + quiz.score,
+                0
+              ) / quizzesCompleted
+            : 0;
+        const currentStreak = streaksData?.current || 0;
+
+        setMetrics({
+          totalQuizScore: parseFloat(totalQuizScore.toFixed(2)),
+          quizzesCompleted,
+          currentStreak,
+          achievements: achievementsCount,
+        });
+
+        // Calculate subject progress
+        const progress: Record<string, SubjectProgress> = {};
+        for (const subject of subjects) {
+          // Fetch quizzes for this subject
+          const subjectQuizzes =
+            quizzesData?.filter((quiz: Quiz) => quiz.subject === subject.id) ||
+            [];
+
+          // Grade Level: Use the most recent quiz's grade, default to 6 if none
+          const latestQuiz = subjectQuizzes.sort(
+            (a: Quiz, b: Quiz) =>
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          )[0];
+          const gradeLevel = latestQuiz ? latestQuiz.grade : 6; // Default to 6th grade
+
+          // Percentage: Average score for this subject, default to 0 if none
+          const percentage =
+            subjectQuizzes.length > 0
+              ? subjectQuizzes.reduce(
+                  (sum: number, quiz: Quiz) => sum + quiz.score,
+                  0
+                ) / subjectQuizzes.length
+              : 0;
+
+          progress[subject.id] = {
+            gradeLevel,
+            percentage: parseFloat(percentage.toFixed(2)),
+          };
+        }
+
+        setSubjectProgress(progress);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load data", {
+          position: "top-right",
+          autoClose: 3000,
+          style: { background: "#F0F4FF", color: "#4361ee" },
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
-
-  // Placeholder stats calculations
-  const questionsAnswered = userProgress.completedQuizzes
-    ? userProgress.completedQuizzes.reduce(
-        (total, quiz) => total + (quiz.score > 0 ? 1 : 0),
-        0
-      )
-    : 0;
-  const topicsMastered = Object.values(userProgress.subjectProgress).filter(
-    (progress) => typeof progress === "number" && progress >= 80
-  ).length;
-  const learningHours = 0; // Placeholder
-  const currentStreak = 1; // Placeholder
-
-  // Placeholder subject progress
-  const subjectProgress = {
-    mathematics: 75,
-    reading: 80,
-    science: 50,
-    history: 65,
-    english: 60,
-    "coding-ai": 35,
-    "logic-puzzles": 45,
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -70,7 +179,9 @@ export default function Home() {
               <p className="text-[13px] text-[#555] mb-[3px]">
                 Total Quiz Score %
               </p>
-              <p className="text-[20px] font-extrabold">75%</p>
+              <p className="text-[20px] font-extrabold">
+                {loading ? "Loading..." : `${metrics.totalQuizScore}%`}
+              </p>
             </div>
             <div className="flex-1 bg-[#ecfdf5] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#099465] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#ecfdf5]">
@@ -79,21 +190,31 @@ export default function Home() {
               <p className="text-[13px] text-[#555] mb-[3px]">
                 Quizzes Completed
               </p>
-              <p className="text-[20px] font-extrabold">5</p>
+              <p className="text-[20px] font-extrabold">
+                {loading ? "Loading..." : metrics.quizzesCompleted}
+              </p>
             </div>
             <div className="flex-1 bg-[#f5f3ff] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#6d43c7] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#f5f3ff]">
                 <Flame className="w-[16px] h-[16px] text-[white]" />
               </div>
               <p className="text-[13px] text-[#555] mb-[3px]">Current Streak</p>
-              <p className="text-[20px] font-extrabold">1 day</p>
+              <p className="text-[20px] font-extrabold">
+                {loading
+                  ? "Loading..."
+                  : `${metrics.currentStreak} day${
+                      metrics.currentStreak !== 1 ? "s" : ""
+                    }`}
+              </p>
             </div>
             <div className="flex-1 bg-[#fff7ed] rounded-[10px] p-[10px] flex flex-col items-start shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <div className="bg-[#d97706] w-[25px] h-[25px] rounded-[4px] flex items-center justify-center mb-[8px] border border-[#fff7ed]">
                 <Award className="w-[16px] h-[16px] text-[white]" />
               </div>
               <p className="text-[13px] text-[#555] mb-[3px]">Achievements</p>
-              <p className="text-[20px] font-extrabold">0</p>
+              <p className="text-[20px] font-extrabold">
+                {loading ? "Loading..." : metrics.achievements}
+              </p>
             </div>
           </div>
         </div>
@@ -103,8 +224,11 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-[15px] max-[768px]:grid-cols-2 max-[640px]:grid-cols-1">
             {subjects.map((subject, index) => {
               const Icon = subject.icon;
-              const progress =
-                (subjectProgress as Record<string, number>)[subject.id] ?? 0;
+              const progressData = subjectProgress[subject.id] || {
+                gradeLevel: 6,
+                percentage: 0,
+              };
+              const progress = progressData.percentage;
               const letterGrade =
                 progress >= 90
                   ? "A"
@@ -153,7 +277,8 @@ export default function Home() {
                       {progress}% Complete
                     </p>
                     <p className="text-[12px] text-[#666] text-left">
-                      6th grade - {progress}% total - {letterGrade}
+                      {progressData.gradeLevel}th grade - {progress}% total -{" "}
+                      {letterGrade}
                     </p>
                   </div>
                 </Link>
@@ -204,12 +329,13 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <div
-        className="px-5 py-[15px] text-center text-[13px] text-[#666] shadow-[0_1px_2px_rgba(0,0,0,0.03)] mt-auto w-full"
+      <Link
+        href="/admin"
+        className="px-5 py-[15px] text-center text-[13px] text-[#666] shadow-[0_1px_2px_rgba(0,0,0,0.03)] mt-auto w-full no-underline block"
         style={{ backgroundColor: "white" }}
       >
         © 2025 GradeSkipper. Made by Dad.
-      </div>
+      </Link>
     </div>
   );
 }

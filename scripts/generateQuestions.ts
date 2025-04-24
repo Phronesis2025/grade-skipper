@@ -20,22 +20,41 @@ const subjects = [
   { name: "Logic Puzzles", topics: ["Patterns", "Riddles", "Sequences"] },
 ];
 
+// Template for generating questions
+function generateQuestionTemplate(topic: string, subject: string) {
+  return {
+    topic,
+    question: `Sample question about ${topic} in ${subject}`,
+    options: ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
+    correctAnswer: "A",
+    explanation: "This is a sample explanation for the correct answer.",
+    hint: "This is a sample hint to help students.",
+    explanations: {
+      correct: "This is a detailed explanation of why the answer is correct.",
+      incorrect: {
+        A: "This is why option A is incorrect.",
+        B: "This is why option B is incorrect.",
+        C: "This is why option C is incorrect.",
+        D: "This is why option D is incorrect.",
+      },
+    },
+  };
+}
+
 async function generateQuestions(
   subject: string,
   topic: string,
   numQuestions: number
 ) {
-  const response = await fetch("http://localhost:3000/api/generate-questions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subject, topic, numQuestions }),
-  });
+  // Generate questions using the template
+  const questions = Array(numQuestions)
+    .fill(null)
+    .map((_, index) => ({
+      ...generateQuestionTemplate(topic, subject),
+      question: `Sample question ${index + 1} about ${topic} in ${subject}`,
+    }));
 
-  const data = await response.json();
-  if (data.error) {
-    throw new Error(data.error);
-  }
-  return data.questions;
+  return questions;
 }
 
 async function saveQuestions() {

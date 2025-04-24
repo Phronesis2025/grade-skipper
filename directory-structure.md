@@ -5,6 +5,9 @@
 ```
 grade-skipper/
 ├── app/
+│   ├── admin/
+│   │   ├── page.tsx
+│   │   └── Charts.tsx
 │   ├── analytics/
 │   │   └── page.tsx
 │   ├── api/
@@ -50,6 +53,7 @@ grade-skipper/
 │   │   └── science.ts
 │   ├── storage.ts
 │   ├── subjects.ts
+│   ├── supabase.ts
 │   ├── types.ts
 │   └── utils.ts
 ├── public/
@@ -99,6 +103,7 @@ grade-skipper/
    - `LoadingAnimation.tsx` - Reusable loading animation component
    - `ProgressBar.tsx` - Progress tracking component
    - `QuizCard.tsx` - Card component for quiz display
+   - `Charts.tsx` - Reusable chart component for data visualization
 
 2. Enhanced core functionality:
 
@@ -108,6 +113,8 @@ grade-skipper/
    - Added calculator and hint features for quiz assistance
    - Implemented question validation and correction logic
    - Added loading states and animations for better UX
+   - Added Supabase integration for data persistence
+   - Added admin dashboard with analytics and data visualization
 
 3. UI/UX Improvements:
 
@@ -118,6 +125,8 @@ grade-skipper/
    - Added visual feedback for quiz answers (green/red shading)
    - Updated favicon to SVG format
    - Standardized loading animations across the application
+   - Added responsive charts for data visualization
+   - Added admin interface for monitoring student progress
 
 4. Development Tools:
    - Added ESLint configuration
@@ -126,3 +135,4 @@ grade-skipper/
    - Added component configuration for UI library integration
    - Implemented proper error handling and logging
    - Added debug logging for question explanations and API responses
+   - Added Recharts library for data visualization

@@ -36,6 +36,7 @@ export interface Progress {
     >
   >;
   points: number;
+  level: number;
   streaks: {
     current: number;
     longest: number;

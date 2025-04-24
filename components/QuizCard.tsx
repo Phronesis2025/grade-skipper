@@ -17,7 +17,7 @@ interface QuizCardProps {
     correctAnswer: string;
   } | null;
   topic?: string;
-  passage?: string; // Add passage prop for comprehension questions
+  passage?: string;
   explanations?: {
     correct: string;
     incorrect: { [key: string]: string };
@@ -46,7 +46,7 @@ export default function QuizCard({
     topic,
     passage,
     explanations,
-  }); // Debug: Log all props including passage
+  });
 
   if (!options || options.length === 0) {
     return (
@@ -85,7 +85,6 @@ export default function QuizCard({
       {/* Answer options */}
       <div className="flex flex-col gap-[12px] mb-[15px] max-sm:gap-[10px]">
         {options.map((option, index) => {
-          // Extract the letter from the option (e.g., "B" from "B) $6")
           const optionLetter = option.split(")")[0].trim();
           return (
             <label
@@ -130,7 +129,7 @@ export default function QuizCard({
         className={`w-full py-[10px] px-[16px] rounded-[6px] text-[16px] font-semibold ${
           isSubmitDisabled || disabled
             ? "bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
-            : "bg-[#4361ee] text-[white] hover:bg-[#3251dd]"
+            : "bg-[#4361ee] text-white hover:bg-[#3251dd]"
         } transition-colors focus:outline-none focus:ring-0`}
       >
         Submit Answer
@@ -148,7 +147,9 @@ export default function QuizCard({
           <p className="text-[16px] font-medium mb-[10px]">
             {feedback.isCorrect ? "Correct!" : "Incorrect"}
           </p>
-          <p className="text-[14px] text-[#555]">{feedback.explanation}</p>
+          <p className="text-[14px] text-[#555]">
+            {feedback.explanation || "No explanation available"}
+          </p>
         </div>
       )}
     </div>
